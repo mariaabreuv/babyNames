@@ -4,6 +4,11 @@ let babies
 
 window.onload = function () {
     //general graph attr
+    canvasHeight = 980;
+    canvasWidth = 1080;
+    padding = 60;
+    graphHeight = canvasHeight - padding * 2;
+    graphWidth = canvasWidth - padding * 2;
 
     babies = './top10babies.csv'
     //create a tootil, for data information
@@ -19,6 +24,10 @@ window.onload = function () {
             year: +b.Year_of_Birth, //make this  a number
             gender: b.Gender,
             name: b.Name,
+            rank: b.Rank,
+            count: b.Baby_Count,
+            total: b.Total,
+            Percentage: b.Percentage,
         }
     }).then(smallMultiples);
 }
@@ -31,7 +40,9 @@ function smallMultiples(data) {
     let yearName = d3.groups(data, d => d.name[0])
 
     // Print the grouped data to check
-    console.log(yearGender,yearName);
+    //console.log(yearGender,yearName);
+
+
 
 
 }
