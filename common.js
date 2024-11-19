@@ -5,7 +5,7 @@ let babies
 window.onload = function () {
     //general graph attr
 
-    babies = './MostPopularBaby_Names(NewYork).csv'
+    babies = './top10babies.csv'
     //create a tootil, for data information
 
     //new svg element
@@ -16,25 +16,22 @@ window.onload = function () {
 
     d3.csv(babies, b => {
         return {
-            year: +b.bith_year, //make this  a number
-            gender: b.gender,
-            ethnicity: b.ethnicity,
-            name: b.name
+            year: +b.Year_of_Birth, //make this  a number
+            gender: b.Gender,
+            name: b.Name,
         }
     }).then(smallMultiples);
 }
 
 function smallMultiples(data) {
-    /*group by ethnicity
-    let data_ethinic = d3.group(data,b=>b.ethnicity);
-    radius = 160;
-    let my_data = [];
-    console.log(data_ethinic); */
-    // Group names by the first letter
-    let dataByLetter = d3.groups(data, d => d.name[0]);
+    //grouped by Year and subgroup gender
+    let yearGender = d3.groups(data, d => d.year, d => d.gender)
+    
+    //grouped by first letter
+    let yearName = d3.groups(data, d => d.name[0])
 
     // Print the grouped data to check
-    console.log(dataByLetter);
+    console.log(yearGender,yearName);
 
 
 }
