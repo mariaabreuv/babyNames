@@ -4,7 +4,7 @@ let babies;
 
 window.onload = function () {
     // General graph attributes
-    canvasHeight = 980;
+    canvasHeight = 780;
     canvasWidth = 1080;
     padding = 60;
     graphHeight = canvasHeight - padding * 2;
