@@ -81,7 +81,9 @@ function top10(data) {
             .attr('fill', 'none')
             .attr('stroke', colorScale(nameData[0].gender)) // Color by gender
             .attr('stroke-width', 1.5)
-            .attr('d', line);
+            .attr('d', line)
+            .on("mouseover", (event) => event.style.setProperty("color", "red",)) //PARA MUDAR O STROKE DAS LINHAS EM MOUSEOVER
+            ;
     });
 
     // Add gender legend
