@@ -38,6 +38,7 @@ function top10(data) {
 
     // Group data by name
     let dataByName = d3.groups(top10Names, d => d.name);
+    let dataByGender = d3.groups(top10Names, d => d.gender)
 
     // Create scales
     let xScale = d3.scaleLinear()
@@ -66,32 +67,52 @@ function top10(data) {
         .x(d => xScale(d.year))
         .y(d => yScale(d.count));
 
-    // Draw lines for each name
-    dataByName.forEach(([name, values]) => {
-        svg.append("path")
-            .datum(values)
-            .attr("fill", "none")
-            .attr("stroke", d3.schemeCategory10[Math.floor(Math.random() * 10)]) // Random colors
-            .attr("stroke-width", 2)
-            .attr("d", line);
+        let colorScale = d3.scaleOrdinal()
+        .domain(['Female', 'Male'])
+        .range(['#ff69b4', '#1f77b4']); // Pink for female, blue for male
+
+    // Group data by name
+    let groupedByName = d3.groups(data, d => d.name);
+
+    // Draw lines for each name, using gender-based coloring
+    groupedByName.forEach(([name, nameData]) => {
+        svg.append('path')
+            .datum(nameData)
+            .attr('fill', 'none')
+            .attr('stroke', colorScale(nameData[0].gender)) // Color by gender
+            .attr('stroke-width', 1.5)
+            .attr('d', line);
     });
 
-    // Add a subtitles
-    let legend = svg.selectAll(".legend")
-        .data(dataByName)
-        .enter()
-        .append("g")
-        .attr("transform", (d, i) => `translate(${graphWidth + 50}, ${padding + i * 20})`);
+    // Add gender legend
+    let legend = svg.append('g')
+        .attr('transform', `translate(${graphWidth - 150}, ${padding})`);
 
-    legend.append("rect")
-        .attr("width", 10)
-        .attr("height", 10)
-        .attr("fill", (_, i) => d3.schemeCategory10[i % 10]);
+    ['Female', 'Male'].forEach((gender, index) => {
+        let yOffset = index * 20; // Space between legend items
 
-    legend.append("text")
-        .attr("x", 15)
-        .attr("y", 10)
-        .text(d => d[0])
-        .attr("font-size", "12px")
-        .attr("fill", "black");
+        legend.append('rect')
+            .attr('x', 0)
+            .attr('y', yOffset)
+            .attr('width', 15)
+            .attr('height', 15)
+            .attr('fill', colorScale(gender));
+
+        legend.append('text')
+            .attr('x', 20)
+            .attr('y', yOffset + 12)
+            .text(gender)
+            .style('font-size', '14px')
+            .attr('fill', '#000');
+    });
+    // **Changes End Here**
+
+    // Add axes
+    svg.append('g')
+        .attr('transform', `translate(0,${graphHeight})`)
+        .call(d3.axisBottom(xScale).ticks(10).tickFormat(d3.format('d')));
+
+    svg.append('g')
+        .attr('transform', `translate(${padding},0)`)
+        .call(d3.axisLeft(yScale));
 }
