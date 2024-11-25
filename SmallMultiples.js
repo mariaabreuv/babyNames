@@ -44,6 +44,9 @@ function updateVisualization(selectedYear, data) {
     // Group data by the first letter of the name
     const letterGroups = d3.group(yearData, d => d.name[0]);
 
+    const sortedLetters = Array.from(letterGroups.keys()).sort();
+
+
     // Clear previous visualization
     d3.select('#visualization').remove();
 
@@ -54,11 +57,14 @@ function updateVisualization(selectedYear, data) {
 
     const smallWidth = 150;
     const smallHeight = 150;
-    const radius = 60;
+    const radius = 50;
 
     // Create a circular bar chart for each letter
-    Array.from(letterGroups.keys()).forEach((letter, index) => {
+    sortedLetters.forEach((letter, index) => {
         const letterData = letterGroups.get(letter);
+
+        const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.name, b.name));
+
 
         // Create a new SVG for each letter
         const svg = container.append('svg')
@@ -66,6 +72,12 @@ function updateVisualization(selectedYear, data) {
             .attr('height', smallHeight)
             .style('margin', '10px');
 
+        // Add a title to each chart
+        svg.append('text')
+        .attr('x', smallWidth / 2)
+        .attr('y', smallHeight / 2)
+        .attr('text-anchor', 'middle')
+        .text(letter);
         
 
         // Calculate angles for radial bars
@@ -74,31 +86,33 @@ function updateVisualization(selectedYear, data) {
             .range([0, 2 * Math.PI]);
 
         const countScale = d3.scaleLinear()
-            .domain([0, d3.max(letterData, d => d.count)])
+            .domain([0, d3.max(sortedLetterData, d => d.count)])
             .range([0, radius]);
 
         // Add bars for each name
-        letterData.forEach((d, i) => {
+        sortedLetterData.forEach((d, i) => {
             const angle = angleScale(i);
-            const barRadius = countScale(d.count);
-            const x1 = smallWidth / 2 + radius * Math.cos(angle);
-            const y1 = smallHeight / 2 + radius * Math.sin(angle);
-            const x2 = smallWidth / 2 + barRadius * Math.cos(angle);
-            const y2 = smallHeight / 2 + barRadius * Math.sin(angle);
-
+            const barLength = countScale(d.count); // Length of the bar based on count
+            const innerRadius = radius;           // Base circle radius
+            const outerRadius = radius + barLength; // Extends outward by bar length
+        
+            // Inner point (base of the bar on the circle's circumference)
+            const x1 = smallWidth / 2 + innerRadius * Math.cos(angle);
+            const y1 = smallHeight / 2 + innerRadius * Math.sin(angle);
+        
+            // Outer point (end of the bar)
+            const x2 = smallWidth / 2 + outerRadius * Math.cos(angle);
+            const y2 = smallHeight / 2 + outerRadius * Math.sin(angle);
+        
+            // Append the bar
             svg.append('line')
                 .attr('x1', x1)
                 .attr('y1', y1)
                 .attr('x2', x2)
                 .attr('y2', y2)
                 .attr('stroke', 'orange')
-                .attr('stroke-width', 2);
+                .attr('stroke-width', 2)
+                .on('mouseover', (hover) => console.log(hover));
         });
-        // Add a title to each chart
-        svg.append('text')
-            .attr('x', smallWidth / 2)
-            .attr('y', smallHeight / 2)
-            .attr('text-anchor', 'middle')
-            .text(letter);
-        });
+    })        
 }
