@@ -5,6 +5,16 @@ window.onload = function () {
 
     const filePath = './NameCounts.csv'; // Path to your data file
 
+    // create a tooltip, so later we make it visible with the data information
+    d3.select('body').append("div")
+        .style("opacity", '0') // it is hidden
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style('position', 'absolute')
+        .style("border-radius", "8px")
+        .style('padding', '2px');
+
+
     // Load the CSV data
     d3.csv(filePath, d => ({
         name: d.Name,
@@ -13,31 +23,44 @@ window.onload = function () {
         year: +d.Year_of_Birth,
     })).then(data => {
         const years = Array.from(new Set(data.map(d => d.year))).sort();
-        setupDropdown(years, data);
+        setupRadioButtons(years, data);
     });
 };
 
-function setupDropdown(years, data) {
-    // Create a dropdown for year selection
-    const dropdown = d3.select('body')
-        .append('select')
-        .on('change', function () {
-            const selectedYear = +this.value;
-            updateVisualization(selectedYear, data);
-        });
+function setupRadioButtons(years, data) {
+    // Create a container for the radio buttons
+    const radioContainer = d3.select('body')
+        .append('div')
+        .attr('id', 'radio-buttons-container');
 
-    dropdown.selectAll('option')
+    // Create a radio button for each year
+    radioContainer.selectAll('label')
         .data(years)
         .enter()
-        .append('option')
-        .attr('value', d => d)
-        .text(d => d);
+        .append('label')
+        .attr('class', 'radio-button-label')
+        .append('input') // Add the radio button first
+        .attr('type', 'radio')
+        .attr('name', 'year') // Group all buttons under the same name
+        .attr('value', d => d) // Set the value to the year
+        .on('change', function () {
+            const selectedYear = +this.value; // Get the selected year
+            updateVisualization(selectedYear, data); // Update visualization
+        })
+        .each(function (d) {
+            d3.select(this.parentNode).append('span').text(d); // Append label text after the button
+        });
 
-    // Initialize with the first year
+    // Automatically select the first year and update the visualization
+    d3.select(`input[value="${years[0]}"]`).property('checked', true);
     updateVisualization(years[0], data);
 }
 
+
+
 function updateVisualization(selectedYear, data) {
+
+
     // Filter data for the selected year
     const yearData = data.filter(d => d.year === selectedYear);
 
@@ -84,8 +107,8 @@ function updateVisualization(selectedYear, data) {
             .text(letter);
 
         // Combine male and female data for consistent angles
-        const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })), 
-                              ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
+        const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })),
+        ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
 
         // Define scales
         const angleScale = d3.scaleBand()
@@ -117,7 +140,8 @@ function updateVisualization(selectedYear, data) {
             .join('path')
             .attr('d', arc) // Use the arc generator
             .attr('fill', d => colorScale(d.gender)) // Color based on gender
-            .attr('stroke', 'none'); // Optional: Add stroke for bar borders
+            .attr('stroke', 'none') // Optional: Add stroke for bar borders
+            .on('mouseover', (e) => console.log(e.target))
+            
     });
 }
-
