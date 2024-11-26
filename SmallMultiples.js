@@ -1,7 +1,5 @@
 window.onload = function () {
-    const canvasWidth = 1080;
-    const canvasHeight = 1080;
-    const padding = 30;
+
 
     const filePath = './NameCounts.csv'; // Path to your data file
 
@@ -28,30 +26,30 @@ window.onload = function () {
 };
 
 function setupRadioButtons(years, data) {
-    // Create a container for the radio buttons
+    // Container for the radio buttons
     const radioContainer = d3.select('body')
         .append('div')
         .attr('id', 'radio-buttons-container');
 
-    // Create a radio button for each year
+    // Radio button for each year
     radioContainer.selectAll('label')
         .data(years)
         .enter()
         .append('label')
         .attr('class', 'radio-button-label')
-        .append('input') // Add the radio button first
+        .append('input')
         .attr('type', 'radio')
-        .attr('name', 'year') // Group all buttons under the same name
-        .attr('value', d => d) // Set the value to the year
+        .attr('name', 'year')
+        .attr('value', d => d)
         .on('change', function () {
-            const selectedYear = +this.value; // Get the selected year
-            updateVisualization(selectedYear, data); // Update visualization
+            const selectedYear = +this.value;
+            updateVisualization(selectedYear, data);
         })
         .each(function (d) {
-            d3.select(this.parentNode).append('span').text(d); // Append label text after the button
+            d3.select(this.parentNode).append('span').text(d);
         });
 
-    // Automatically select the first year and update the visualization
+    // Select the first year and update the visualization
     d3.select(`input[value="${years[0]}"]`).property('checked', true);
     updateVisualization(years[0], data);
 }
@@ -59,20 +57,17 @@ function setupRadioButtons(years, data) {
 
 
 function updateVisualization(selectedYear, data) {
-
-
-    // Filter data for the selected year
     const yearData = data.filter(d => d.year === selectedYear);
 
-    // Group data by the first letter of the name
+    // Group data by first letter of the name
     const letterGroups = d3.group(yearData, d => d.name[0]);
-
+    //sort grouped data
     const sortedLetters = Array.from(letterGroups.keys()).sort();
 
     // Clear previous visualization
     d3.select('#visualization').remove();
 
-    // Create a container for small multiples
+    // Create a container for the small multiples
     const container = d3.select('body')
         .append('div')
         .attr('id', 'visualization')
@@ -106,6 +101,37 @@ function updateVisualization(selectedYear, data) {
             .attr('text-anchor', 'middle')
             .text(letter);
 
+        const mOver = function (e, d) {
+            // e is the mouseEvent
+            // d is the data
+
+            console.log(d);
+
+            d3.select(this) // this is the svg element interacted with
+                .style("stroke", "black")
+                .style("opacity", 1);
+
+            d3.select(this.parentNode)
+                .append('text')
+                .attr('y', smallHeight / 3)
+                .attr('id', 'name')
+                .text(d.name)
+                .attr('fill', 'black');
+        }
+
+        const mOut = function () {
+            d3.select(this)
+                .style("stroke", "none");
+
+            d3.select(this.parentNode).selectAll('#name').remove('#name');
+        }
+
+
+        const tooltip = d3.select('.tooltip');
+
+
+
+
         // Combine male and female data for consistent angles
         const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })),
         ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
@@ -130,7 +156,7 @@ function updateVisualization(selectedYear, data) {
             .startAngle((d, i) => angleScale(i)) // Start angle for each bar
             .endAngle((d, i) => angleScale(i) + angleScale.bandwidth()) // End angle
             .padAngle(0.01) // Padding between bars
-            .cornerRadius(2); // Rounded corners
+            .cornerRadius(2); // Corners
 
         // Draw circular bars
         svg.append('g')
@@ -141,7 +167,8 @@ function updateVisualization(selectedYear, data) {
             .attr('d', arc) // Use the arc generator
             .attr('fill', d => colorScale(d.gender)) // Color based on gender
             .attr('stroke', 'none') // Optional: Add stroke for bar borders
-            .on('mouseover', (e) => console.log(e.target))
-            
+            .on('mouseover', mOver)
+            .on('mouseout', mOut)
+
     });
 }
