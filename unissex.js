@@ -5,7 +5,7 @@ window.onload = function () {
     const margin = {top: 20, right: 30, bottom: 30, left: 40};
 
     // Append SVG to the body
-    const svg = d3.select("body").append("svg")
+    const svg = d3.select("#unissexDiv").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
       .append("g")
@@ -16,8 +16,13 @@ window.onload = function () {
         // Get unique names for the dropdown
         const uniqueNames = Array.from(new Set(data.map(d => d["ChildsFirstName"]))).sort();
 
+        // Determine the overall min and max year in the dataset
+        const allYears = data.map(d => +d["YearOfBirth"]);
+        const overallMinYear = d3.min(allYears);
+        const overallMaxYear = d3.max(allYears);
+
         // Create dropdown menu
-        const dropdown = d3.select("body")
+        const dropdown = d3.select("#dropdown")
             .append("select")
             .attr("id", "nameDropdown")
             .on("change", updateChart);
@@ -45,20 +50,15 @@ window.onload = function () {
                 girls: parseFloat(d.PercentageGirls.replace('%', '')) || 0
               }));
 
-            // Fill in missing years
-            const yearsWithData = filteredData.map(d => d.year);
-            const minYear = d3.min(yearsWithData);
-            const maxYear = d3.max(yearsWithData);
-            const allYears = d3.range(minYear, maxYear + 1);
-
-            const completeData = allYears.map(year => {
+            // Fill in missing years from the overall dataset range
+            const completeData = d3.range(overallMinYear, overallMaxYear + 1).map(year => {
                 const entry = filteredData.find(d => d.year === year);
                 return entry || { year: year, boys: 0, girls: 0 };
             });
 
             // Define scales
             const x = d3.scaleTime()
-                .domain([new Date(minYear, 0, 1), new Date(maxYear, 0, 1)])
+                .domain([new Date(overallMinYear, 0, 1), new Date(overallMaxYear, 0, 1)])
                 .range([0, width]);
 
             const y = d3.scaleLinear()
@@ -125,10 +125,22 @@ window.onload = function () {
                 .attr("x", width / 2)
                 .attr("y", -10)
                 .attr("text-anchor", "middle")
-                .style("font-size", "16px")
+                .style("font-size", "36px")
                 .text(`Gender Distribution for ${selectedName}`);
         }
     }).catch(error => {
         console.error("Error loading or parsing data:", error);
     });
 }
+
+
+
+
+
+
+
+
+
+
+
+
