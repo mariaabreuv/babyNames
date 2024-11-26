@@ -1,66 +1,134 @@
-// set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+window.onload = function () {
+    // Set dimensions and margins
+    const width = 800;
+    const height = 500;
+    const margin = {top: 20, right: 30, bottom: 30, left: 40};
 
-// append the svg object to the body of the page
-var svg = d3.select("unissexDiv")
-  .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
+    // Append SVG to the body
+    const svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-//Read the data
-d3.csv("UnissexBabies.csv", function(data) {
+    // Load and parse the CSV file
+    d3.csv("UnissexBaby.csv").then(function(data) {
+        // Get unique names for the dropdown
+        const uniqueNames = Array.from(new Set(data.map(d => d["ChildsFirstName"]))).sort();
 
-  // group the data: one array for each value of the X axis.
-  var sumstat = d3.nest()
-    .key(function(d) { return d.year;})
-    .entries(data);
+        // Create dropdown menu
+        const dropdown = d3.select("body")
+            .append("select")
+            .attr("id", "nameDropdown")
+            .on("change", updateChart);
 
-  // Stack the data: each group will be represented on top of each other
-  var mygroups = ["Boys", "Girls"] // list of group names
-  var mygroup = [1,2] // list of group names
-  var stackedData = d3.stack()
-    .keys(mygroup)
-    .value(function(d, key){
-      return d.values[key].n
-    })
-    (sumstat)
+        dropdown.selectAll("option")
+            .data(uniqueNames)
+            .enter()
+            .append("option")
+            .text(d => d)
+            .attr("value", d => d);
 
-  // Add X axis --> it is a date format
-  var x = d3.scaleLinear()
-    .domain(d3.extent(data, function(d) { return d.YearOfBirth; }))
-    .range([ 0, width ]);
-  svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).ticks(11));
+        // Initial chart for the first name
+        updateChart();
 
-  // Add Y axis
-  var y = d3.scaleLinear()
-    .domain([0, d3.max(data, function(d) { return +d.n; })*1.2])
-    .range([ height, 0 ]);
-  svg.append("g")
-    .call(d3.axisLeft(y));
+        // Update chart function
+        function updateChart() {
+            const selectedName = dropdown.node().value || uniqueNames[0];
 
-  // color palette
-  var color = d3.scaleOrdinal()
-    .domain(mygroups)
-    .range(['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'])
+            // Filter data for the selected name and format it
+            let filteredData = data
+              .filter(d => d["ChildsFirstName"] === selectedName)
+              .map(d => ({
+                year: +d["YearOfBirth"],
+                boys: parseFloat(d.PercentageBoys.replace('%', '')) || 0,
+                girls: parseFloat(d.PercentageGirls.replace('%', '')) || 0
+              }));
 
-  // Show the areas
-  svg
-    .selectAll("mylayers")
-    .data(stackedData)
-    .enter()
-    .append("path")
-      .style("fill", function(d) { name = mygroups[d.key-1] ;  return color(name); })
-      .attr("d", d3.area()
-        .x(function(d, i) { return x(d.data.key); })
-        .y0(function(d) { return y(d[0]); })
-        .y1(function(d) { return y(d[1]); })
-    )
+            // Fill in missing years
+            const yearsWithData = filteredData.map(d => d.year);
+            const minYear = d3.min(yearsWithData);
+            const maxYear = d3.max(yearsWithData);
+            const allYears = d3.range(minYear, maxYear + 1);
 
-})
+            const completeData = allYears.map(year => {
+                const entry = filteredData.find(d => d.year === year);
+                return entry || { year: year, boys: 0, girls: 0 };
+            });
+
+            // Define scales
+            const x = d3.scaleTime()
+                .domain([new Date(minYear, 0, 1), new Date(maxYear, 0, 1)])
+                .range([0, width]);
+
+            const y = d3.scaleLinear()
+                .domain([0, 100])
+                .range([height, 0]);
+
+            // Define color scale
+            const color = d3.scaleOrdinal()
+                .domain(["boys", "girls"])
+                .range(["#4f8dc5", "#c57ba0"]);
+
+            // Stack the data
+            const stack = d3.stack().keys(["boys", "girls"]);
+            const series = stack(completeData);
+
+            // Define area generator
+            const area = d3.area()
+                .x(d => x(new Date(d.data.year, 0, 1)))
+                .y0(d => y(d[0]))
+                .y1(d => y(d[1]));
+
+            // Clear existing paths and re-draw for the new data
+            svg.selectAll(".area").remove();
+
+            svg.selectAll(".area")
+              .data(series)
+              .join("path")
+                .attr("class", "area")
+                .attr("d", area)
+                .attr("fill", d => color(d.key));
+
+            // Clear and update axes
+            svg.selectAll(".axis").remove();
+
+            // Add x-axis
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")))
+                .append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", 30)
+                .attr("text-anchor", "middle")
+                .text("Year");
+
+            // Add y-axis
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y).ticks(10))
+                .append("text")
+                .attr("class", "axis-label")
+                .attr("transform", "rotate(-90)")
+                .attr("x", -height / 2)
+                .attr("y", -30)
+                .attr("text-anchor", "middle")
+                .text("Percentage of Babies Born");
+
+            // Add title
+            svg.selectAll(".chart-title").remove();
+
+            svg.append("text")
+                .attr("class", "chart-title")
+                .attr("x", width / 2)
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text(`Gender Distribution for ${selectedName}`);
+        }
+    }).catch(error => {
+        console.error("Error loading or parsing data:", error);
+    });
+}
