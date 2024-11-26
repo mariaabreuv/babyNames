@@ -46,25 +46,29 @@ function updateVisualization(selectedYear, data) {
 
     const sortedLetters = Array.from(letterGroups.keys()).sort();
 
-
     // Clear previous visualization
     d3.select('#visualization').remove();
 
     // Create a container for small multiples
     const container = d3.select('body')
         .append('div')
-        .attr('id', 'visualization');
+        .attr('id', 'visualization')
+        .style('padding-left', '80px');
 
-    const smallWidth = 150;
-    const smallHeight = 150;
+    const smallWidth = 200;
+    const smallHeight = 200;
     const radius = 50;
 
     // Create a circular bar chart for each letter
     sortedLetters.forEach((letter, index) => {
         const letterData = letterGroups.get(letter);
 
+        // Sort letter data alphabetically and group by gender
         const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.name, b.name));
+        const genderData = d3.group(sortedLetterData, d => d.gender);
 
+        const femaleData = genderData.get('FEMALE') || []; // Default to empty array if undefined
+        const maleData = genderData.get('MALE') || []; // Default to empty array if undefined
 
         // Create a new SVG for each letter
         const svg = container.append('svg')
@@ -74,45 +78,46 @@ function updateVisualization(selectedYear, data) {
 
         // Add a title to each chart
         svg.append('text')
-        .attr('x', smallWidth / 2)
-        .attr('y', smallHeight / 2)
-        .attr('text-anchor', 'middle')
-        .text(letter);
-        
+            .attr('x', smallWidth / 2)
+            .attr('y', smallHeight / 2)
+            .attr('text-anchor', 'middle')
+            .text(letter);
 
-        // Calculate angles for radial bars
-        const angleScale = d3.scaleLinear()
-            .domain([0, letterData.length])
-            .range([0, 2 * Math.PI]);
+        // Combine male and female data for consistent angles
+        const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })), 
+                              ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
+
+        // Define scales
+        const angleScale = d3.scaleBand()
+            .domain(d3.range(combinedData.length))
+            .range([0, 2 * Math.PI]); // Full circle
 
         const countScale = d3.scaleLinear()
-            .domain([0, d3.max(sortedLetterData, d => d.count)])
-            .range([0, radius]);
+            .domain([0, d3.max(combinedData, d => d.count)])
+            .range([radius, radius + 50]); // Adjust bar height range
 
-        // Add bars for each name
-        sortedLetterData.forEach((d, i) => {
-            const angle = angleScale(i);
-            const barLength = countScale(d.count); // Length of the bar based on count
-            const innerRadius = radius;           // Base circle radius
-            const outerRadius = radius + barLength; // Extends outward by bar length
-        
-            // Inner point (base of the bar on the circle's circumference)
-            const x1 = smallWidth / 2 + innerRadius * Math.cos(angle);
-            const y1 = smallHeight / 2 + innerRadius * Math.sin(angle);
-        
-            // Outer point (end of the bar)
-            const x2 = smallWidth / 2 + outerRadius * Math.cos(angle);
-            const y2 = smallHeight / 2 + outerRadius * Math.sin(angle);
-        
-            // Append the bar
-            svg.append('line')
-                .attr('x1', x1)
-                .attr('y1', y1)
-                .attr('x2', x2)
-                .attr('y2', y2)
-                .attr('stroke', 'orange')
-                .attr('stroke-width', 2)
-                .on('mouseover', (hover) => console.log(hover));
-        });
-    })        
+        const colorScale = d3.scaleOrdinal()
+            .domain(['FEMALE', 'MALE'])
+            .range(['pink', 'steelblue']); // Pink for female, blue for male
+
+        // Define the arc generator
+        const arc = d3.arc()
+            .innerRadius(radius) // Base radius
+            .outerRadius(d => countScale(d.count)) // Bar height based on count
+            .startAngle((d, i) => angleScale(i)) // Start angle for each bar
+            .endAngle((d, i) => angleScale(i) + angleScale.bandwidth()) // End angle
+            .padAngle(0.01) // Padding between bars
+            .cornerRadius(2); // Rounded corners
+
+        // Draw circular bars
+        svg.append('g')
+            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`) // Center the arcs
+            .selectAll('path')
+            .data(combinedData)
+            .join('path')
+            .attr('d', arc) // Use the arc generator
+            .attr('fill', d => colorScale(d.gender)) // Color based on gender
+            .attr('stroke', 'none'); // Optional: Add stroke for bar borders
+    });
 }
+
