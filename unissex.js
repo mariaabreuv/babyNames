@@ -68,7 +68,7 @@ window.onload = function () {
             // Define color scale
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range(["#4f8dc5", "#c57ba0"]);
+                .range(["steelblue", "pink"]);
 
             // Stack the data
             const stack = d3.stack().keys(["boys", "girls"]);
@@ -78,7 +78,8 @@ window.onload = function () {
             const area = d3.area()
                 .x(d => x(new Date(d.data.year, 0, 1)))
                 .y0(d => y(d[0]))
-                .y1(d => y(d[1]));
+                .y1(d => y(d[1]))
+                .curve(d3.curveMonotoneX); // Adds smooth Bézier curves
 
             // Clear existing paths and re-draw for the new data
             svg.selectAll(".area").remove();
@@ -104,11 +105,13 @@ window.onload = function () {
                 .attr("y", 30)
                 .attr("text-anchor", "middle")
                 .text("Year");
+                
+            
 
             // Add y-axis
             svg.append("g")
                 .attr("class", "axis")
-                .call(d3.axisLeft(y).ticks(10))
+                .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`))
                 .append("text")
                 .attr("class", "axis-label")
                 .attr("transform", "rotate(-90)")
