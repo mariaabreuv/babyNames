@@ -1,8 +1,8 @@
 window.onload = function () {
     // Set dimensions and margins
-    const width = 800;
-    const height = 500;
-    const margin = {top: 20, right: 30, bottom: 30, left: 40};
+    const width = 600;
+    const height = 350;
+    const margin = {top: 40, right: 30, bottom: 30, left: 40};
 
     // Append SVG to the body
     const svg = d3.select("#unissexDiv").append("svg")
@@ -74,7 +74,7 @@ window.onload = function () {
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
 
-            // Define area generator
+            // Define area 
             const area = d3.area()
                 .x(d => x(new Date(d.data.year, 0, 1)))
                 .y0(d => y(d[0]))
@@ -117,9 +117,10 @@ window.onload = function () {
                 .attr("text-anchor", "middle")
                 .text("Percentage of Babies Born");
 
-            // Add title
+            //Remove old title
             svg.selectAll(".chart-title").remove();
-
+            
+            //Add new title
             svg.append("text")
                 .attr("class", "chart-title")
                 .attr("x", width / 2)
