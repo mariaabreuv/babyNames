@@ -77,9 +77,9 @@ function updateVisualization(selectedYear, data) {
     const container = d3.select('body')
         .append('div')
         .attr('id', 'visualization')
-        .style('padding-left', '80px');
+        .style('padding-left', '100px');
 
-    const smallWidth = 200;
+    const smallWidth = 150;
     const smallHeight = 200;
     const radius = 50;
 
@@ -98,7 +98,7 @@ function updateVisualization(selectedYear, data) {
         const svg = container.append('svg')
             .attr('width', smallWidth)
             .attr('height', smallHeight)
-            .style('margin', '10px');
+            .style('margin', '5px');
 
         // title to each chart
         svg.append('text')
