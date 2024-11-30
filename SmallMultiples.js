@@ -59,9 +59,10 @@ function setupRadioButtons(years, data) {
 function updateVisualization(selectedYear, data) {
     const yearData = data.filter(d => d.year === selectedYear);
 
-    // Group data by first letter of the name
+    const globalMaxCount = d3.max(yearData, d => d.count);
+
+    // Group data by first letter of the name and sort
     const letterGroups = d3.group(yearData, d => d.name[0]);
-    //sort grouped data
     const sortedLetters = Array.from(letterGroups.keys()).sort();
 
     // Clear previous visualization
@@ -82,11 +83,11 @@ function updateVisualization(selectedYear, data) {
         const letterData = letterGroups.get(letter);
 
         // Sort letter data alphabetically and group by gender
-        const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.name, b.name));
+        const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.count, b.count));
         const genderData = d3.group(sortedLetterData, d => d.gender);
 
-        const femaleData = genderData.get('FEMALE') || []; // Default to empty array if undefined
-        const maleData = genderData.get('MALE') || []; // Default to empty array if undefined
+        const femaleData = genderData.get('FEMALE') || [];
+        const maleData = genderData.get('MALE') || [];
 
         // Create a new SVG for each letter
         const svg = container.append('svg')
@@ -96,41 +97,49 @@ function updateVisualization(selectedYear, data) {
 
         // Add a title to each chart
         svg.append('text')
+            .attr('class', 'firstLetter')
             .attr('x', smallWidth / 2)
             .attr('y', smallHeight / 2)
             .attr('text-anchor', 'middle')
             .text(letter);
 
-        const mOver = function (e, d) {
-            // e is the mouseEvent
-            // d is the data
-
-            console.log(d);
-
-            d3.select(this) // this is the svg element interacted with
-                .style("stroke", "black")
-                .style("opacity", 1);
-
-            d3.select(this.parentNode)
-                .append('text')
-                .attr('y', smallHeight / 3)
-                .attr('id', 'name')
-                .text(d.name)
-                .attr('fill', 'black');
+            const mOver = function (e, d) {
+                // Hide the letter
+                d3.select(this.parentNode).select('.firstLetter').style('opacity', 0);
+            
+                // Highlight the hovered bar
+                d3.select(this)
+                    .style("stroke", "black")
+                    .style("opacity", 1);
+            
+                // Display the name
+                d3.select(this.parentNode)
+                    .append('text')
+                    .attr('class', 'hover-text name') // Use class for cleanup
+                    .attr('x', 0) // Centered horizontally
+                    .attr('y', -10) // Slightly above center
+                    .attr('text-anchor', 'middle')
+                    .text(d.name)
+                    .attr('fill', 'black');
+            
+                // Display the count
+                d3.select(this.parentNode)
+                    .append('text')
+                    .attr('class', 'hover-text count') // Use class for cleanup
+                    .attr('x', 0) // Centered horizontally
+                    .attr('y', 10) // Slightly below center
+                    .attr('text-anchor', 'middle')
+                    .text(`${d.count} babies`)
+                    .attr('fill', 'black');
+            };
+            
+            const mOut = function () {
+                // Restore the letter
+                d3.select(this.parentNode).select('.firstLetter').style('opacity', 1);
+            
+                d3.select(this.parentNode).selectAll('.hover-text').remove();
+                d3.select(this).style("stroke", "none");
         }
-
-        const mOut = function () {
-            d3.select(this)
-                .style("stroke", "none");
-
-            d3.select(this.parentNode).selectAll('#name').remove('#name');
-        }
-
-
-        const tooltip = d3.select('.tooltip');
-
-
-
 
         // Combine male and female data for consistent angles
         const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })),
@@ -139,35 +148,36 @@ function updateVisualization(selectedYear, data) {
         // Define scales
         const angleScale = d3.scaleBand()
             .domain(d3.range(combinedData.length))
-            .range([0, 2 * Math.PI]); // Full circle
+            .range([0, 2 * Math.PI]); 
 
         const countScale = d3.scaleLinear()
-            .domain([0, d3.max(combinedData, d => d.count)])
-            .range([radius, radius + 50]); // Adjust bar height range
+            .domain([0, globalMaxCount])
+            .range([radius, radius + 50]);
 
         const colorScale = d3.scaleOrdinal()
             .domain(['FEMALE', 'MALE'])
-            .range(['pink', 'steelblue']); // Pink for female, blue for male
+            .range(['pink', 'steelblue']);
 
         // Define the arc generator
         const arc = d3.arc()
-            .innerRadius(radius) // Base radius
-            .outerRadius(d => countScale(d.count)) // Bar height based on count
-            .startAngle((d, i) => angleScale(i)) // Start angle for each bar
-            .endAngle((d, i) => angleScale(i) + angleScale.bandwidth()) // End angle
-            .padAngle(0.01) // Padding between bars
-            .cornerRadius(2); // Corners
+            .innerRadius(radius)
+            .outerRadius(d => countScale(d.count))
+            .startAngle((d, i) => angleScale(i)) 
+            .endAngle((d, i) => angleScale(i) + angleScale.bandwidth()) 
+            .padAngle(0.01) 
+            .cornerRadius(4); 
 
         // Draw circular bars
         svg.append('g')
-            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`) // Center the arcs
+            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`) 
             .selectAll('path')
             .data(combinedData)
             .join('path')
-            .attr('d', arc) // Use the arc generator
-            .attr('fill', d => colorScale(d.gender)) // Color based on gender
-            .attr('stroke', 'none') // Optional: Add stroke for bar borders
+            .attr('d', arc) 
+            .attr('fill', d => colorScale(d.gender))
+            .attr('stroke', 'none')
             .on('mouseover', mOver)
+            //.on('mouseover', mOver_c)
             .on('mouseout', mOut)
 
     });
