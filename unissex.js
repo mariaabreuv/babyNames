@@ -18,18 +18,18 @@ window.addEventListener("load", function () {
         .style('text-align', 'center') // Center-align the title
         .style('font-size', '24px') // Style the title font size
         .attr('text-anchor', 'middle') // Centraliza o texto no eixo X
-        .style('font-family', 'American Typewriter, serif') 
+        .style('font-family', 'American Typewriter, serif')
         .style('font-weight', 100)
-        .style('font-size', '40px') 
-        .style('fill', '#FBB03B') 
-        .style('letter-spacing', '5px') 
-        .style('margin-top', '80px') 
-        
+        .style('font-size', '40px')
+        .style('fill', '#FBB03B')
+        .style('letter-spacing', '5px')
+        .style('margin-top', '80px')
+
 
     // Create a container for the radio-section and graph-section
     const contentContainer = layoutContainer.append('div')
         .style('display', 'flex') // Flexbox layout for side-by-side sections
-        .style('align-items', 'center') 
+        .style('align-items', 'center')
         .style('justify-content', 'center')
         .style('width', '100%');
 
@@ -48,7 +48,7 @@ window.addEventListener("load", function () {
     const graphSection = contentContainer.append('div')
         .attr('id', 'graph-section')
         .style('flex-grow', '1')
-        .style('max-width', '800px') 
+        .style('max-width', '800px')
         .style('padding-left', '20px');
 
     const width = 800;
@@ -78,7 +78,7 @@ window.addEventListener("load", function () {
             .style('display', 'block')
             .style('margin-bottom', '10px')
             .style('font-size', '14px')
-            .style("fill", "white") 
+            .style("fill", "white")
             .style("font-family", "Avenir Light")
             .html(d => `
                 <input type="radio" name="name" value="${d}">
@@ -121,7 +121,7 @@ window.addEventListener("load", function () {
 
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range(['#FFA1DD', '#00AEE4']); 
+                .range(['steelblue', 'pink']);
 
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
@@ -151,14 +151,14 @@ window.addEventListener("load", function () {
                 .style("stroke", "white")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")));
-               
+
 
             // Add y-axis
             svg.append("g")
                 .attr("class", "axis y-axis")
                 .style("stroke", "white")
                 .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`));
-            
+
 
             // Add axis labels only if they don't already exist
             if (svg.select(".x-axis-label").empty()) {

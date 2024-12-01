@@ -9,39 +9,38 @@ window.onload = function () {
     link.href = 'https://fonts.googleapis.com/css2?family=Avenir+Light&family=American+Typewriter&display=swap';
     head.appendChild(link);
 
-    // Dimensões 
     canvasHeight = 780;
     canvasWidth = 1080;
     padding = 60;
     graphHeight = canvasHeight - padding * 2;
     graphWidth = canvasWidth - padding * 2;
 
-    babies = './top10babies.csv'; 
+    babies = './top10babies.csv';
 
-    // Selecionar o SVG dentro da section com classe 'top10'
-    svg = d3.select('.top10 svg') 
+    //Select svg inside section
+    svg = d3.select('.top10 svg')
         .attr('width', canvasWidth)
         .attr('height', canvasHeight);
 
-    // Carregar o CSV
+    //load CSV
     d3.csv(babies, b => ({
-        year: +b.Year_of_Birth, 
+        year: +b.Year_of_Birth,
         gender: b.Gender,
         name: b.Name,
         rank: +b.Rank,
-        count: +b.Baby_Count, 
+        count: +b.Baby_Count,
         total: +b.Total,
         percentage: +b.Percentage
     })).then(top10);
 };
 
 function top10(data) {
-    // Filtra os 10 nomes principais e organiza por ano
+    //FIlter top 10 names ordering by year
     let top10Names = data
         .filter(d => d.rank <= 10)
         .sort((a, b) => d3.ascending(a.year, b.year));
 
-    // Criar escalas
+    //Create scales
     let xScale = d3.scaleLinear()
         .domain(d3.extent(data, d => d.year))
         .range([padding, graphWidth]);
@@ -50,7 +49,7 @@ function top10(data) {
         .domain([0, d3.max(data, d => d.count)])
         .range([graphHeight, padding]);
 
-    // Criar eixo
+    //Create axis
     let xAxis = d3.axisBottom(xScale).ticks(10).tickFormat(d3.format("d"));
     let yAxis = d3.axisLeft(yScale).ticks(10);
 
@@ -58,20 +57,20 @@ function top10(data) {
         .attr("transform", `translate(0, ${graphHeight})`)
         .call(xAxis)
         .selectAll("text")
-        .style("fill", "white")  
+        .style("fill", "white")
         .style("font-family", "Avenir Light");
 
     svg.append("g")
         .attr("transform", `translate(${padding}, 0)`)
         .call(yAxis)
         .selectAll("text")
-        .style("fill", "white") 
+        .style("fill", "white")
         .style("font-family", "Avenir Light");
 
     svg.selectAll(".domain")
         .style("stroke", "white");
 
-    // Criar a grelha
+    //Create grid
     svg.append('g')
         .selectAll('line.horizontal')
         .data(yScale.ticks(10))  // Divide o eixo Y em 10 partes
@@ -85,19 +84,19 @@ function top10(data) {
         .style('stroke-width', 1)
         .style('opacity', 0.2);  // Transparência das linhas horizontais
 
-    // Adicionar legenda do eixo X
+    //Add subtitles x axis
     svg.append('text')
-    .attr('x', canvasWidth / 2)
-    .attr('y', canvasHeight - 40)
-    .attr('text-anchor', 'middle')
-    .attr('fill', 'white')
-    .style('font-family', 'Avenir Light')
-    .style('font-size', '14px')
-    .text('Year of birth');
+        .attr('x', canvasWidth / 2)
+        .attr('y', canvasHeight - 40)
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'white')
+        .style('font-family', 'Avenir Light')
+        .style('font-size', '14px')
+        .text('Year of birth');
 
     svg.append('g')
         .selectAll('line.vertical')
-        .data(xScale.ticks(10))  // Divide o eixo X em 10 partes
+        .data(xScale.ticks(10))
         .enter().append('line')
         .attr('class', 'vertical')
         .attr('y1', padding)
@@ -106,10 +105,10 @@ function top10(data) {
         .attr('x2', d => xScale(d))
         .style('stroke', 'white')
         .style('stroke-width', 1)
-        .style('opacity', 0.2);  // Transparência das linhas verticais
+        .style('opacity', 0.2);
 
-        // Adicionar legenda do eixo Y
-        svg.append('text')
+    //Add subtitles y axis
+    svg.append('text')
         .attr('x', -canvasHeight / 2)
         .attr('y', 11)
         .attr('text-anchor', 'middle')
@@ -119,64 +118,64 @@ function top10(data) {
         .attr('transform', 'rotate(-90)')
         .text('Number of babys');
 
-    // Escala de cor
+    //Color scale
     let colorScale = d3.scaleOrdinal()
         .domain(['Female', 'Male'])
-        .range(['#FFA1DD', '#00AEE4']); 
+        .range(['pink', 'steelblue']);
 
     let groupedByName = d3.groups(top10Names, d => d.name);
 
     let linesGroup = svg.append('g').attr('class', 'lines-group');
 
-    // Linhas para cada nome
+    //Draw lines
     let line = d3.line()
         .x(d => xScale(d.year))
         .y(d => yScale(d.count));
 
     let allLines = [];
 
-    // Adiciona linha e rótulo para cada nome
+    //Add line and label
     groupedByName.forEach(([name, nameData]) => {
         let lineElement = linesGroup.append('path')
             .datum(nameData)
             .attr('fill', 'none')
-            .attr('stroke', colorScale(nameData[0].gender)) // Cor por gênero
+            .attr('stroke', colorScale(nameData[0].gender))
             .attr('stroke-width', 3)
             .attr('d', line)
             .attr('class', nameData[0].gender)
             .on('mouseover', function () {
-                // Sobressair a linha
+                //highlight line
                 d3.select(this).raise().attr('stroke', '#FBB03B').attr('stroke-width', 6);
 
-                // Sobressair o nome
+                //highlight name
                 let maxPoint = nameData.reduce((max, d) => (d.count > max.count ? d : max), nameData[0]);
                 d3.select(`#label-${maxPoint.name}`).raise().attr('fill', '#FBB03B').style('font-size', '20px');
             })
             .on('mouseout', function () {
-                // Restaurar a linha
+                //restore line
                 d3.select(this).lower().attr('stroke', colorScale(nameData[0].gender)).attr('stroke-width', 3);
 
-                // Restaurar o nome
+                //Restore name
                 let maxPoint = nameData.reduce((max, d) => (d.count > max.count ? d : max), nameData[0]);
                 d3.select(`#label-${maxPoint.name}`).lower().attr('fill', colorScale(nameData[0].gender)).style('font-size', '16px');
             });
 
         allLines.push({ name, lineElement, gender: nameData[0].gender, nameData });
 
-        // Encontrar o ponto de maior contagem
+        //Find max point
         let maxPoint = nameData.reduce((max, d) => (d.count > max.count ? d : max), nameData[0]);
 
-        // Criar rótulo no ponto de maior contagem
+        //label on max name count
         let label = svg.append('text')
-            .attr('x', xScale(maxPoint.year) + 10) // Ligeiramente à direita do pico
-            .attr('y', yScale(maxPoint.count) - 10) // Ligeiramente acima do pico
+            .attr('x', xScale(maxPoint.year) + 10)
+            .attr('y', yScale(maxPoint.count) - 10)
             .text(name)
             .style('font-size', '16px')
             .attr('fill', colorScale(maxPoint.gender))
             .attr('alignment-baseline', 'middle')
             .attr('id', `label-${maxPoint.name}`)
             .style('font-family', 'American Typewriter');
-        
+
         allLines[allLines.length - 1].label = label;
     });
 
@@ -186,14 +185,14 @@ function top10(data) {
         .style('display', 'flex')
         .style('justify-content', 'center')
         .style('align-items', 'center')
-        .style('margin-bottom', '-20px'); 
-        
+        .style('margin-bottom', '-20px');
 
-    // Caixa para "Girls"
+
+    //Girls checkbox
     controls.append('label')
         .style('color', 'white')
         .style('display', 'flex')
-        .style('align-items', 'center') 
+        .style('align-items', 'center')
         .style('font-family', 'American Typewriter')
         .style('cursor', 'pointer')
         .style('margin-right', '15px')
@@ -214,13 +213,13 @@ function top10(data) {
             toggleLines('Female', checkbox.checked);
         });
 
-    // Caixa para "Boys"
+    //Boys checkbox
     controls.append('label')
         .style('color', 'white')
         .style('display', 'flex')
-        .style('align-items', 'center') 
+        .style('align-items', 'center')
         .style('font-family', 'American Typewriter')
-        .style('cursor', 'pointer') 
+        .style('cursor', 'pointer')
         .html(`
             <input type="checkbox" checked style="
                 width: 30px; 
@@ -238,7 +237,7 @@ function top10(data) {
             toggleLines('Male', checkbox.checked);
         });
 
-    // Função para mostrar ou esconder as linhas e os nomes
+    //Show or hide the lines
     function toggleLines(gender, isChecked) {
         allLines.forEach(({ lineElement, label, gender: lineGender }) => {
             if (lineGender === gender) {

@@ -19,20 +19,19 @@ function setupRadioButtons(years, data) {
     const headerContainer = d3.select('body')
         .append('div')
         .attr('id', 'header-container')
-        .style('text-align', 'center') 
-        .style('margin-bottom', '20px'); 
+        .style('text-align', 'center')
+        .style('margin-bottom', '20px');
 
     // Add the header
     headerContainer.append('h1')
-        .text('Popular letters and their names throughout the years') 
+        .text('Popular letters and their names throughout the years')
         .style('margin-bottom', '10px')
-        .style('font-family', 'American Typewriter, serif') 
         .style('font-weight', 100)
-        .style('font-size', '40px') 
-        .style('fill', '#FBB03B') 
-        .style('letter-spacing', '5px') 
-        .style('margin-top', '80px') 
-        .style('margin-bottom', '80px') 
+        .style('font-size', '40px')
+        .style('fill', '#FBB03B')
+        .style('letter-spacing', '5px')
+        .style('margin-top', '80px')
+        .style('margin-bottom', '80px')
 
 
     // Add the radio buttons container
@@ -46,8 +45,8 @@ function setupRadioButtons(years, data) {
         .enter()
         .append('label')
         .attr('class', 'radio-button-label')
-        .style('margin-right', '10px') 
-        .style('font-size', '14px') 
+        .style('margin-right', '10px')
+        .style('font-size', '14px')
         .html(d => `
             <input type="radio" name="year" value="${d}">
             ${d}
@@ -64,7 +63,7 @@ function setupRadioButtons(years, data) {
     d3.select(`input[value="${years[0]}"]`).property('checked', true);
     updateVisualization(years[0], data);
 }
-    
+
 
 function updateVisualization(selectedYear, data) {
     const yearData = data.filter(d => d.year === selectedYear);
@@ -109,67 +108,65 @@ function updateVisualization(selectedYear, data) {
         svg.append('text')
             .attr('class', 'firstLetter')
             .attr('x', smallWidth / 2)
-            .attr('y', smallHeight / 2)
+            .attr('y', smallHeight / 2 + 6)
             .attr('text-anchor', 'middle')
             .text(letter)
-            .style("fill", "white") 
-            .style('font-family', 'American Typewriter, serif') 
-            .style('font-size', '30px') ;
-        
-
-            const mOver = function (e, d) {
-                // Hide the letter
-                d3.select(this.parentNode).select('.firstLetter').style('opacity', 0);
-            
-                // Highlight the hovered bar
-                d3.select(this)
-                    .style("stroke", "#FBB03B")
-                    .style("opacity", 1);
-
-                    // Fundo para o nome 
-                    d3.select(this.parentNode)
-                    .append('rect')
-                    .attr('class', 'rect')
-                    .attr('x', -40)  
-                    .attr('y', -30)
-                    .attr('width', 80)  // Largura do fundo
-                    .attr('height', 30) // Altura do fundo
-                    .attr('fill', 'rgb(0, 0, 46)')  
-                    .attr('rx', 5)  
-                    .attr('ry', 5);
-            
-                // Display the name
-                d3.select(this.parentNode)
-                    .append('text')
-                    .attr('class', 'hover-text name') 
-                    .attr('x', 0) 
-                    .attr('y', -10) 
-                    .attr('text-anchor', 'middle')
-                    .text(d.name)
-                    .attr('fill', '#FBB03B')
-                    .style('font-family', 'Avenir Light');
+            .style("fill", "white")
+            .style('font-family', 'American Typewriter, serif')
+            .style('font-size', '24px');
 
 
+        const mOver = function (e, d) {
+            // Hide the letter
+            d3.select(this.parentNode).select('.firstLetter').style('opacity', 0);
 
-                // Display the count
-                d3.select(this.parentNode)
-                    .append('text')
-                    .attr('class', 'hover-text count')
-                    .attr('x', 0) 
-                    .attr('y', 10)
-                    .attr('text-anchor', 'middle')
-                    .text(`${d.count} babies`)
-                    .attr('fill', '#FBB03B')
-                    .style('font-family', 'Avenir Light');
-            };
-            
-            const mOut = function () {
-                // Restore the letter
-                d3.select(this.parentNode).select('.firstLetter').style('opacity', 1);
-            
-                d3.select(this.parentNode).selectAll('.hover-text').remove();
-                d3.select(this.parentNode).selectAll('.rect').remove();
-                d3.select(this).style("stroke", "none");
+            // Highlight the hovered bar
+            d3.select(this)
+                .style("stroke", "#FBB03B")
+                .style("opacity", 1);
+
+            // Fundo para o nome 
+            d3.select(this.parentNode)
+                .append('rect')
+                .attr('class', 'rect')
+                .attr('x', -40)
+                .attr('y', -30)
+                .attr('width', 80)
+                .attr('height', 60)
+                .attr('fill', 'rgb(0, 0, 46)')
+                .attr('rx', 5)
+                .attr('ry', 5);
+
+            // Display the name
+            d3.select(this.parentNode)
+                .append('text')
+                .attr('class', 'hover-text name')
+                .attr('x', 0)
+                .attr('y', -10)
+                .attr('text-anchor', 'middle')
+                .text(d.name)
+                .attr('fill', 'white')
+                .style('font-family', 'Avenir Light');
+
+            // Display the count
+            d3.select(this.parentNode)
+                .append('text')
+                .attr('class', 'hover-text count')
+                .attr('x', 0)
+                .attr('y', 10)
+                .attr('text-anchor', 'middle')
+                .text(`${d.count} babies`)
+                .attr('fill', 'white')
+                .style('font-family', 'Avenir Light');
+        };
+
+        const mOut = function () {
+            // Restore the letter
+            d3.select(this.parentNode).select('.firstLetter').style('opacity', 1);
+
+            d3.select(this.parentNode).selectAll('.hover-text').remove();
+            d3.select(this.parentNode).selectAll('.rect').remove();
+            d3.select(this).style("stroke", "none");
         }
 
         // Combine male and female data for consistent angles
@@ -179,7 +176,7 @@ function updateVisualization(selectedYear, data) {
         // Define scales
         const angleScale = d3.scaleBand()
             .domain(d3.range(combinedData.length))
-            .range([0, 2 * Math.PI]); 
+            .range([0, 2 * Math.PI]);
 
         const countScale = d3.scaleLinear()
             .domain([0, globalMaxCount])
@@ -187,24 +184,24 @@ function updateVisualization(selectedYear, data) {
 
         const colorScale = d3.scaleOrdinal()
             .domain(['FEMALE', 'MALE'])
-            .range(['#FFA1DD', '#00AEE4']); 
+            .range(['pink', 'steelblue']);
 
         // Define the arc generator
         const arc = d3.arc()
             .innerRadius(radius)
             .outerRadius(d => countScale(d.count))
-            .startAngle((d, i) => angleScale(i)) 
-            .endAngle((d, i) => angleScale(i) + angleScale.bandwidth()) 
-            .padAngle(0.01) 
-            .cornerRadius(4); 
+            .startAngle((d, i) => angleScale(i))
+            .endAngle((d, i) => angleScale(i) + angleScale.bandwidth())
+            .padAngle(0.01)
+            .cornerRadius(4);
 
         // Draw circular bars
         svg.append('g')
-            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`) 
+            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`)
             .selectAll('path')
             .data(combinedData)
             .join('path')
-            .attr('d', arc) 
+            .attr('d', arc)
             .attr('fill', d => colorScale(d.gender))
             .attr('stroke', 'none')
             .on('mouseover', mOver)
