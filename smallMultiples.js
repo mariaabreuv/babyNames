@@ -25,8 +25,15 @@ function setupRadioButtons(years, data) {
     // Add the header
     headerContainer.append('h1')
         .text('Popular letters and their names throughout the years') 
-        .style('font-size', '24px')
-        .style('margin-bottom', '10px'); 
+        .style('margin-bottom', '10px')
+        .style('font-family', 'American Typewriter, serif') 
+        .style('font-weight', 100)
+        .style('font-size', '40px') 
+        .style('fill', '#FBB03B') 
+        .style('letter-spacing', '5px') 
+        .style('margin-top', '80px') 
+        .style('margin-bottom', '80px') 
+
 
     // Add the radio buttons container
     const radioContainer = headerContainer.append('div')
@@ -58,8 +65,6 @@ function setupRadioButtons(years, data) {
     updateVisualization(years[0], data);
 }
     
-
-
 
 function updateVisualization(selectedYear, data) {
     const yearData = data.filter(d => d.year === selectedYear);
@@ -106,7 +111,11 @@ function updateVisualization(selectedYear, data) {
             .attr('x', smallWidth / 2)
             .attr('y', smallHeight / 2)
             .attr('text-anchor', 'middle')
-            .text(letter);
+            .text(letter)
+            .style("fill", "white") 
+            .style('font-family', 'American Typewriter, serif') 
+            .style('font-size', '30px') ;
+        
 
             const mOver = function (e, d) {
                 // Hide the letter
@@ -114,8 +123,20 @@ function updateVisualization(selectedYear, data) {
             
                 // Highlight the hovered bar
                 d3.select(this)
-                    .style("stroke", "black")
+                    .style("stroke", "#FBB03B")
                     .style("opacity", 1);
+
+                    // Fundo para o nome 
+                    d3.select(this.parentNode)
+                    .append('rect')
+                    .attr('class', 'rect')
+                    .attr('x', -40)  
+                    .attr('y', -30)
+                    .attr('width', 80)  // Largura do fundo
+                    .attr('height', 30) // Altura do fundo
+                    .attr('fill', 'rgb(0, 0, 46)')  
+                    .attr('rx', 5)  
+                    .attr('ry', 5);
             
                 // Display the name
                 d3.select(this.parentNode)
@@ -125,8 +146,11 @@ function updateVisualization(selectedYear, data) {
                     .attr('y', -10) 
                     .attr('text-anchor', 'middle')
                     .text(d.name)
-                    .attr('fill', 'black');
-            
+                    .attr('fill', '#FBB03B')
+                    .style('font-family', 'Avenir Light');
+
+
+
                 // Display the count
                 d3.select(this.parentNode)
                     .append('text')
@@ -135,7 +159,8 @@ function updateVisualization(selectedYear, data) {
                     .attr('y', 10)
                     .attr('text-anchor', 'middle')
                     .text(`${d.count} babies`)
-                    .attr('fill', 'black');
+                    .attr('fill', '#FBB03B')
+                    .style('font-family', 'Avenir Light');
             };
             
             const mOut = function () {
@@ -143,6 +168,7 @@ function updateVisualization(selectedYear, data) {
                 d3.select(this.parentNode).select('.firstLetter').style('opacity', 1);
             
                 d3.select(this.parentNode).selectAll('.hover-text').remove();
+                d3.select(this.parentNode).selectAll('.rect').remove();
                 d3.select(this).style("stroke", "none");
         }
 
@@ -161,7 +187,7 @@ function updateVisualization(selectedYear, data) {
 
         const colorScale = d3.scaleOrdinal()
             .domain(['FEMALE', 'MALE'])
-            .range(['pink', 'steelblue'])
+            .range(['#FFA1DD', '#00AEE4']); 
 
         // Define the arc generator
         const arc = d3.arc()

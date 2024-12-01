@@ -17,7 +17,14 @@ window.addEventListener("load", function () {
         .style('margin-bottom', '20px') // Add spacing below the title
         .style('text-align', 'center') // Center-align the title
         .style('font-size', '24px') // Style the title font size
-        .style('font-weight', 'bold'); // Make the title bold
+        .attr('text-anchor', 'middle') // Centraliza o texto no eixo X
+        .style('font-family', 'American Typewriter, serif') 
+        .style('font-weight', 100)
+        .style('font-size', '40px') 
+        .style('fill', '#FBB03B') 
+        .style('letter-spacing', '5px') 
+        .style('margin-top', '80px') 
+        
 
     // Create a container for the radio-section and graph-section
     const contentContainer = layoutContainer.append('div')
@@ -71,6 +78,8 @@ window.addEventListener("load", function () {
             .style('display', 'block')
             .style('margin-bottom', '10px')
             .style('font-size', '14px')
+            .style("fill", "white") 
+            .style("font-family", "Avenir Light")
             .html(d => `
                 <input type="radio" name="name" value="${d}">
                 ${d}
@@ -112,7 +121,7 @@ window.addEventListener("load", function () {
 
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range(["steelblue", "pink"]);
+                .range(['#FFA1DD', '#00AEE4']); 
 
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
@@ -139,13 +148,17 @@ window.addEventListener("load", function () {
             // Add x-axis
             svg.append("g")
                 .attr("class", "axis x-axis")
+                .style("stroke", "white")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")));
+               
 
             // Add y-axis
             svg.append("g")
                 .attr("class", "axis y-axis")
+                .style("stroke", "white")
                 .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`));
+            
 
             // Add axis labels only if they don't already exist
             if (svg.select(".x-axis-label").empty()) {
@@ -154,7 +167,9 @@ window.addEventListener("load", function () {
                     .attr("x", width / 2)
                     .attr("y", height + margin.bottom - 10)
                     .attr("text-anchor", "middle")
-                    .style("font-size", "14px")
+                    .attr('fill', 'white')
+                    .style('font-family', 'Avenir Light')
+                    .style('font-size', '14px')
                     .text("Years");
             }
 
@@ -165,7 +180,9 @@ window.addEventListener("load", function () {
                     .attr("x", -height / 2)
                     .attr("y", -margin.left + 15)
                     .attr("text-anchor", "middle")
-                    .style("font-size", "14px")
+                    .attr('fill', 'white')
+                    .style('font-family', 'Avenir Light')
+                    .style('font-size', '14px')
                     .text("Total (%)");
             }
         }

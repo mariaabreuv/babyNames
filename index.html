@@ -4,16 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <script type="text/javascript" src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="style.css">
     <title>BabyNames</title>
 </head>
-
 <body>
-    
+<header>
+    <div class="logo-container">
+        <img class="logo" src="image.png" alt="Logo">
+    </div>
+</header>
+
+<main>
+    <div>
+        <h1>
+            Most popular baby names in New York
+        </h1>
+    </div>
+    <div>
+        <h2>Here you can explore charts of the most popular baby names over the years. <br>
+            See how certain names have changed in popularity, discover new trends and find the perfect name for your child. <br>
+            Browse through different options and have fun learning about the most popular names!
+        </h2>
+    </div>
+
+    <section class="top10">
+        <h3>
+        10 MOST POPULAR NAMES
+        </h3>
+        <script type="text/javascript" src="top10.js"></script> 
+        <svg></svg>
+    </section>
     
     <div id="smallMultiples"></div>
-    <script type="text/javascript" src="smallMultiples.js"></script>
-    <script type="text/javascript" src="unissex.js"></script>
-    
-</body>
 
+    
+    <script type="text/javascript" src="smallMultiples.js"></script>
+    <script type="text/javascript" src="unissex.js"></script> 
+  
+    
+</main>
+</body>
 </html>
