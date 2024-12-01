@@ -15,7 +15,7 @@ window.onload = function () {
     graphHeight = canvasHeight - padding * 2;
     graphWidth = canvasWidth - padding * 2;
 
-    babies = './top10babies.csv';
+    babies = 'datasets/top10babies.csv';
 
     //Select svg inside section
     svg = d3.select('.top10 svg')

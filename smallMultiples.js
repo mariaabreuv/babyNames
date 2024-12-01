@@ -1,5 +1,5 @@
 window.addEventListener("load", function () {
-    const filePath = './NameCounts.csv'; // Path to your data file
+    const filePath = 'datasets/NameCounts.csv'; // Path to your data file
 
 
     // Load the CSV data

@@ -62,7 +62,7 @@ window.addEventListener("load", function () {
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Load and parse the CSV file
-    d3.csv("UnissexBaby.csv").then(function (data) {
+    d3.csv("datasets/UnissexBaby.csv").then(function (data) {
         const uniqueNames = Array.from(new Set(data.map(d => d["ChildsFirstName"]))).sort();
 
         const allYears = data.map(d => +d["YearOfBirth"]);
