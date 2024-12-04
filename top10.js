@@ -121,7 +121,7 @@ function top10(data) {
     //Color scale
     let colorScale = d3.scaleOrdinal()
         .domain(['Female', 'Male'])
-        .range(['pink', 'steelblue']);
+        .range(['pink', ' #00AEE4']);
 
     let groupedByName = d3.groups(top10Names, d => d.name);
 
@@ -200,8 +200,8 @@ function top10(data) {
             <input type="checkbox" checked style="
                 width: 30px; 
                 height: 30px; 
-                background-color: #FFA1DD; 
-                border: 2px solid #FFA1DD; 
+                background-color: pink; 
+                border: 2px solid pink; 
                 border-radius: 5%; 
                 appearance: none; 
                 outline: none; 

@@ -23,15 +23,18 @@ function setupRadioButtons(years, data) {
         .style('margin-bottom', '20px');
 
     // Add the header
-    headerContainer.append('h1')
+    headerContainer.append('h2')
         .text('Popular letters and their names throughout the years')
         .style('margin-bottom', '10px')
         .style('font-weight', 100)
-        .style('font-size', '40px')
         .style('fill', '#FBB03B')
         .style('letter-spacing', '5px')
         .style('margin-top', '80px')
         .style('margin-bottom', '80px')
+        .style('font-family', 'American Typewriter, serif')
+        .style('font-size', '40px')
+        .style('fill', '#FBB03B')
+        .style('margin-top', '80px')
 
 
     // Add the radio buttons container
@@ -113,7 +116,7 @@ function updateVisualization(selectedYear, data) {
             .text(letter)
             .style("fill", "white")
             .style('font-family', 'American Typewriter, serif')
-            .style('font-size', '24px');
+            .style('font-size', '26px');
 
 
         const mOver = function (e, d) {
@@ -184,7 +187,7 @@ function updateVisualization(selectedYear, data) {
 
         const colorScale = d3.scaleOrdinal()
             .domain(['FEMALE', 'MALE'])
-            .range(['pink', 'steelblue']);
+            .range(['pink', ' #00AEE4']);
 
         // Define the arc generator
         const arc = d3.arc()

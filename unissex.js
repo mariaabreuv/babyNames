@@ -121,7 +121,7 @@ window.addEventListener("load", function () {
 
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range(['steelblue', 'pink']);
+                .range([' #00AEE4', 'pink']);
 
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
