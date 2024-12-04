@@ -48,12 +48,13 @@ function setupRadioButtons(years, data) {
         .enter()
         .append('label')
         .attr('class', 'radio-button-label')
+        .style('color', 'white')
         .style('margin-right', '10px')
         .style('font-size', '14px')
         .html(d => `
-            <input type="radio" name="year" value="${d}">
-            ${d}
-        `);
+                <input type="radio" name="year" value="${d}">
+                ${d}
+            `);
 
     // Add change event to the radio buttons
     radioContainer.selectAll('input')
@@ -70,44 +71,89 @@ function setupRadioButtons(years, data) {
 
 function updateVisualization(selectedYear, data) {
     const yearData = data.filter(d => d.year === selectedYear);
-
     const globalMaxCount = d3.max(yearData, d => d.count);
 
-    // Group data by first letter of the name and sort
     const letterGroups = d3.group(yearData, d => d.name[0]);
     const sortedLetters = Array.from(letterGroups.keys()).sort();
 
-    // Clear previous visualization
     d3.select('#visualization').remove();
 
-    // Create a container for the small multiples
     const container = d3.select('body')
         .append('div')
         .attr('id', 'visualization')
         .style('padding-left', '100px');
 
-    const smallWidth = 150;
+    const smallWidth = 200;
     const smallHeight = 200;
     const radius = 50;
 
-    // Create a circular bar chart for each letter
+    let selectedChart = null; // Track the selected chart
+
+    // Handle clicks outside the charts
+    d3.select('body').on('click', function (event) {
+        const isClickInsideChart = container.node().contains(event.target);
+        if (!isClickInsideChart && selectedChart) {
+            // Deselect the current chart
+            d3.select(selectedChart)
+                .transition()
+                .duration(300)
+                .attr('width', smallWidth)
+                .attr('height', smallHeight);
+            d3.select(selectedChart).select('g')
+                .transition()
+                .duration(300)
+                .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2}) scale(1)`);
+
+            selectedChart = null; // Reset selection
+        }
+    });
+
     sortedLetters.forEach((letter, index) => {
         const letterData = letterGroups.get(letter);
-
-        // Sort letter data alphabetically and group by gender
         const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.count, b.count));
         const genderData = d3.group(sortedLetterData, d => d.gender);
 
         const femaleData = genderData.get('FEMALE') || [];
         const maleData = genderData.get('MALE') || [];
 
-        // Create a new SVG for each letter
         const svg = container.append('svg')
             .attr('width', smallWidth)
             .attr('height', smallHeight)
-            .style('margin', '5px');
+            .style('margin', '5px')
+            .style('transition', 'all 0.3s ease')
+            .on('click', function (event) {
+                // Prevent click from propagating to the body
+                event.stopPropagation();
 
-        // title to each chart
+                if (selectedChart && selectedChart !== this) {
+                    // Reset previously selected chart
+                    d3.select(selectedChart)
+                        .transition()
+                        .duration(300)
+                        .attr('width', smallWidth)
+                        .attr('height', smallHeight);
+                    d3.select(selectedChart).select('g')
+                        .transition()
+                        .duration(300)
+                        .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2}) scale(1)`);
+                }
+
+                // Select the current chart
+                selectedChart = this;
+                d3.select(this)
+                    .transition()
+                    .duration(300)
+                    .attr('width', smallWidth * 2)
+                    .attr('height', smallHeight * 2);
+                d3.select(this).select('g')
+                    .transition()
+                    .duration(300)
+                    .attr('transform', `translate(${smallWidth}, ${smallHeight}) scale(2)`);
+            });
+
+        const chartGroup = svg.append('g')
+            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`);
+
         svg.append('text')
             .attr('class', 'firstLetter')
             .attr('x', smallWidth / 2)
@@ -118,65 +164,9 @@ function updateVisualization(selectedYear, data) {
             .style('font-family', 'American Typewriter, serif')
             .style('font-size', '26px');
 
+        const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })), 
+            ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
 
-        const mOver = function (e, d) {
-            // Hide the letter
-            d3.select(this.parentNode).select('.firstLetter').style('opacity', 0);
-
-            // Highlight the hovered bar
-            d3.select(this)
-                .style("stroke", "#FBB03B")
-                .style("opacity", 1);
-
-            // Fundo para o nome 
-            d3.select(this.parentNode)
-                .append('rect')
-                .attr('class', 'rect')
-                .attr('x', -40)
-                .attr('y', -30)
-                .attr('width', 80)
-                .attr('height', 60)
-                .attr('fill', 'rgb(0, 0, 46)')
-                .attr('rx', 5)
-                .attr('ry', 5);
-
-            // Display the name
-            d3.select(this.parentNode)
-                .append('text')
-                .attr('class', 'hover-text name')
-                .attr('x', 0)
-                .attr('y', -10)
-                .attr('text-anchor', 'middle')
-                .text(d.name)
-                .attr('fill', 'white')
-                .style('font-family', 'Avenir Light');
-
-            // Display the count
-            d3.select(this.parentNode)
-                .append('text')
-                .attr('class', 'hover-text count')
-                .attr('x', 0)
-                .attr('y', 10)
-                .attr('text-anchor', 'middle')
-                .text(`${d.count} babies`)
-                .attr('fill', 'white')
-                .style('font-family', 'Avenir Light');
-        };
-
-        const mOut = function () {
-            // Restore the letter
-            d3.select(this.parentNode).select('.firstLetter').style('opacity', 1);
-
-            d3.select(this.parentNode).selectAll('.hover-text').remove();
-            d3.select(this.parentNode).selectAll('.rect').remove();
-            d3.select(this).style("stroke", "none");
-        }
-
-        // Combine male and female data for consistent angles
-        const combinedData = [...femaleData.map(d => ({ ...d, gender: 'FEMALE' })),
-        ...maleData.map(d => ({ ...d, gender: 'MALE' }))];
-
-        // Define scales
         const angleScale = d3.scaleBand()
             .domain(d3.range(combinedData.length))
             .range([0, 2 * Math.PI]);
@@ -187,9 +177,8 @@ function updateVisualization(selectedYear, data) {
 
         const colorScale = d3.scaleOrdinal()
             .domain(['FEMALE', 'MALE'])
-            .range(['pink', ' #00AEE4']);
+            .range(['pink', '#00AEE4']);
 
-        // Define the arc generator
         const arc = d3.arc()
             .innerRadius(radius)
             .outerRadius(d => countScale(d.count))
@@ -198,17 +187,58 @@ function updateVisualization(selectedYear, data) {
             .padAngle(0.01)
             .cornerRadius(4);
 
-        // Draw circular bars
-        svg.append('g')
-            .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`)
-            .selectAll('path')
+        chartGroup.selectAll('path')
             .data(combinedData)
             .join('path')
             .attr('d', arc)
             .attr('fill', d => colorScale(d.gender))
             .attr('stroke', 'none')
-            .on('mouseover', mOver)
-            .on('mouseout', mOut)
+            .on('mouseover', function (e, d) {
+                // Highlight the hovered bar
+                d3.select(this)
+                    .style("stroke", "#FBB03B")
+                    .style("opacity", 1);
 
+                // Display hover bar
+                chartGroup.append('rect')
+                    .attr('class', 'rect')
+                    .attr('x', -40)
+                    .attr('y', -30)
+                    .attr('width', 80)
+                    .attr('height', 60)
+                    .attr('fill', 'rgb(0, 0, 46)')
+                    .attr('rx', 5)
+                    .attr('ry', 5);
+
+                chartGroup.append('text')
+                    .attr('class', 'hover-text name')
+                    .attr('x', 0)
+                    .attr('y', -10)
+                    .attr('text-anchor', 'middle')
+                    .text(d.name)
+                    .attr('fill', 'white')
+                    .style('font-family', 'Avenir Light');
+
+                chartGroup.append('text')
+                    .attr('class', 'hover-text count')
+                    .attr('x', 0)
+                    .attr('y', 10)
+                    .attr('text-anchor', 'middle')
+                    .text(`${d.count} babies`)
+                    .attr('fill', 'white')
+                    .style('font-family', 'Avenir Light');
+            })
+            .on('mouseout', function () {
+                // Remove hover bar
+                chartGroup.selectAll('.hover-text').remove();
+                chartGroup.selectAll('.rect').remove();
+                d3.select(this).style("stroke", "none");
+            });
     });
 }
+
+
+
+
+
+

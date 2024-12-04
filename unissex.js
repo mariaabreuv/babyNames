@@ -97,7 +97,7 @@ window.addEventListener("load", function () {
 
         function updateChart() {
             const selectedName = radioSection.select('input[name="name"]:checked').node().value;
-
+        
             const filteredData = data
                 .filter(d => d["ChildsFirstName"] === selectedName)
                 .map(d => ({
@@ -105,87 +105,69 @@ window.addEventListener("load", function () {
                     boys: parseFloat(d.PercentageBoys.replace('%', '')) || 0,
                     girls: parseFloat(d.PercentageGirls.replace('%', '')) || 0
                 }));
-
+        
             const completeData = d3.range(overallMinYear, overallMaxYear + 1).map(year => {
                 const entry = filteredData.find(d => d.year === year);
                 return entry || { year: year, boys: 0, girls: 0 };
             });
-
+        
             const x = d3.scaleTime()
                 .domain([new Date(overallMinYear, 0, 1), new Date(overallMaxYear, 0, 1)])
                 .range([0, width]);
-
+        
             const y = d3.scaleLinear()
                 .domain([0, 100])
                 .range([height, 0]);
-
+        
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range([' #00AEE4', 'pink']);
-
+                .range(['#00AEE4', 'pink']);
+        
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
-
+        
             const area = d3.area()
                 .x(d => x(new Date(d.data.year, 0, 1)))
                 .y0(d => y(d[0]))
                 .y1(d => y(d[1]))
                 .curve(d3.curveMonotoneX);
-
-            // Remove previous chart areas
-            svg.selectAll(".area").remove();
-
+        
+            // Update the chart with a smooth transition
             svg.selectAll(".area")
                 .data(series)
-                .join("path")
-                .attr("class", "area")
-                .attr("d", area)
-                .attr("fill", d => color(d.key));
-
-            // Remove and re-add axes
-            svg.selectAll(".axis").remove();
-
-            // Add x-axis
-            svg.append("g")
-                .attr("class", "axis x-axis")
-                .style("stroke", "white")
-                .attr("transform", `translate(0,${height})`)
+                .join(
+                    enter => enter.append("path")
+                        .attr("class", "area")
+                        .attr("fill", d => color(d.key))
+                        .attr("d", area)
+                        .style("opacity", 0) // Start with invisible
+                        .transition() // Add transition
+                        .duration(500) // 500ms duration
+                        .style("opacity", 1), // Fade in
+                    update => update
+                        .transition() // Add transition
+                        .duration(500) // 500ms duration
+                        .attr("d", area), // Update path
+                    exit => exit
+                        .transition() // Add transition
+                        .duration(500) // 500ms duration
+                        .style("opacity", 0) // Fade out
+                        .remove() // Remove element
+                );
+        
+            // Update x-axis
+            svg.select(".x-axis")
+                .transition() // Smooth transition
+                .duration(700)
                 .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")));
-
-
-            // Add y-axis
-            svg.append("g")
-                .attr("class", "axis y-axis")
-                .style("stroke", "white")
+        
+            // Update y-axis
+            svg.select(".y-axis")
+                .transition() // Smooth transition
+                .duration(500)
                 .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`));
-
-
-            // Add axis labels only if they don't already exist
-            if (svg.select(".x-axis-label").empty()) {
-                svg.append("text")
-                    .attr("class", "x-axis-label")
-                    .attr("x", width / 2)
-                    .attr("y", height + margin.bottom - 10)
-                    .attr("text-anchor", "middle")
-                    .attr('fill', 'white')
-                    .style('font-family', 'Avenir Light')
-                    .style('font-size', '14px')
-                    .text("Years");
-            }
-
-            if (svg.select(".y-axis-label").empty()) {
-                svg.append("text")
-                    .attr("class", "y-axis-label")
-                    .attr("transform", "rotate(-90)")
-                    .attr("x", -height / 2)
-                    .attr("y", -margin.left + 15)
-                    .attr("text-anchor", "middle")
-                    .attr('fill', 'white')
-                    .style('font-family', 'Avenir Light')
-                    .style('font-size', '14px')
-                    .text("Total (%)");
-            }
         }
+        
     }).catch(error => {
         console.error("Error loading or parsing data:", error);
     });
