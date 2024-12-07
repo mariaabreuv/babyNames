@@ -34,8 +34,11 @@ function setupRadioButtons(years, data) {
         .style('font-family', 'American Typewriter, serif')
         .style('font-size', '40px')
         .style('fill', '#FBB03B')
-        .style('margin-top', '80px')
-
+        .style('margin-top', '80px');
+    
+    headerContainer.append('h5')
+        .text('Names with the same first letter for each year, listing all the names used and its popularity')
+        .style('margin', '3rem')
 
     // Add the radio buttons container
     const radioContainer = headerContainer.append('div')
@@ -236,9 +239,3 @@ function updateVisualization(selectedYear, data) {
             });
     });
 }
-
-
-
-
-
-

@@ -25,6 +25,9 @@ window.addEventListener("load", function () {
         .style('letter-spacing', '5px')
         .style('margin-top', '80px')
 
+    layoutContainer.append('h5')
+        .text('Percentage of unisex name distribution through time')
+
 
     // Create a container for the radio-section and graph-section
     const contentContainer = layoutContainer.append('div')
@@ -132,33 +135,52 @@ window.addEventListener("load", function () {
                 .y1(d => y(d[1]))
                 .curve(d3.curveMonotoneX);
 
-            // Remove previous chart areas
-            svg.selectAll(".area").remove();
+            // Bind data to area paths and apply transitions
+            const areas = svg.selectAll(".area")
+                .data(series);
 
-            svg.selectAll(".area")
-                .data(series)
-                .join("path")
+            areas.enter()
+                .append("path")
                 .attr("class", "area")
+                .attr("fill", d => color(d.key))
                 .attr("d", area)
-                .attr("fill", d => color(d.key));
+                .style("opacity", 0) // Start with opacity 0
+                .transition() // Transition to full opacity
+                .duration(500)
+                .style("opacity", 1);
 
-            // Remove and re-add axes
-            svg.selectAll(".axis").remove();
+            areas.transition() // Transition existing areas
+                .duration(500)
+                .attr("d", area);
 
-            // Add x-axis
-            svg.append("g")
-                .attr("class", "axis x-axis")
-                .style("stroke", "white")
-                .attr("transform", `translate(0,${height})`)
+            areas.exit()
+                .transition() // Transition exiting areas
+                .duration(500)
+                .style("opacity", 0)
+                .remove();
+
+            // Update x-axis
+            let xAxis = svg.select(".x-axis");
+            if (xAxis.empty()) {
+                xAxis = svg.append("g")
+                    .attr("class", "x-axis")
+                    .attr("transform", `translate(0,${height})`)
+                    .style("color", "white");
+            }
+            xAxis.transition()
+                .duration(500)
                 .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")));
 
-
-            // Add y-axis
-            svg.append("g")
-                .attr("class", "axis y-axis")
-                .style("stroke", "white")
+            // Update y-axis
+            let yAxis = svg.select(".y-axis");
+            if (yAxis.empty()) {
+                yAxis = svg.append("g")
+                    .attr("class", "y-axis")
+                    .style("color", "white");
+            }
+            yAxis.transition()
+                .duration(500)
                 .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`));
-
 
             // Add axis labels only if they don't already exist
             if (svg.select(".x-axis-label").empty()) {
