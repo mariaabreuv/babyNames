@@ -97,5 +97,71 @@ h5 {
     overflow: hidden; 
 }
 
+/* Fixed button styles */
+.fixed-button {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    padding: 10px 15px;
+    border: 2px solid #ffa600;
+    background-color: transparent;
+    color: white;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure it is above other elements */
+}
+
+.fixed-button:hover {
+    background-color: #ffa600;
+    color:black;
+}
+
+#infoTitle {
+    font-size: large;
+    padding: 1rem 0;
+}
+
+/* Popup container styles */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    width: max-content;
+    max-width: 500px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1001; /* Above the button */
+    display: none; /* Initially hidden */
+}
+
+.popup-content {
+    text-align: center;
+}
+
+.popup .close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Show popup when active */
+.popup.active {
+    display: block;
+}
+
+.group, .uc {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
 
 

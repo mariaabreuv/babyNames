@@ -16,6 +16,23 @@
 </header>
 
 <main>
+    <div id="popup" class="popup hidden">
+        <div class="popup-content">
+            <span id="close-popup" class="close">&times;</span>
+            <p id="infoTitle">Developed for a University Project</p>
+            <div class="group">
+                <span>Joana Filipa Sousa Fernandes</span>
+                <span>Beatriz Neves Ferreira da Silva</span>
+                <span>Maria Luiza Violin Zuanazzi de Abreu</span>
+            </div>
+            <div class="uc">
+                <span>Information Vizualization</span>
+                <span>M.Sc. Design and Multimedia</span>
+                <span>Faculty Science and Technology | University of Coimbra</span>
+            </div>
+        </div>
+    </div>
+    <button id="info-button" class="fixed-button">&ii;</button>
     <div>
         <h1>
             Most popular baby names in New York
@@ -42,7 +59,29 @@
     
     <script type="text/javascript" src="smallMultiples.js"></script>
     <script type="text/javascript" src="unissex.js"></script> 
-  
+    <script>
+        // Select the popup and button elements
+        const popup = document.getElementById("popup");
+        const infoButton = document.getElementById("info-button");
+        const closePopup = document.getElementById("close-popup");
+
+        // Show the popup when the button is clicked
+        infoButton.addEventListener("click", () => {
+            popup.classList.add("active");
+        });
+
+        // Hide the popup when the close button is clicked
+        closePopup.addEventListener("click", () => {
+            popup.classList.remove("active");
+        });
+
+        // Hide the popup when clicking outside of it
+        window.addEventListener("click", (event) => {
+            if (event.target === popup) {
+                popup.classList.remove("active");
+            }
+        });
+    </script>
     
 </main>
 </body>
