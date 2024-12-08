@@ -1,7 +1,6 @@
 window.addEventListener("load", function () {
     const filePath = 'datasets/NameCounts.csv'; // Path to your data file
 
-
     // Load the CSV data
     d3.csv(filePath, d => ({
         name: d.Name,
@@ -22,7 +21,6 @@ function setupRadioButtons(years, data) {
         .style('text-align', 'center')
         .style('margin-bottom', '20px');
 
-    // Add the header
     headerContainer.append('h2')
         .text('Popular letters and their names throughout the years')
         .style('margin-bottom', '10px')
@@ -34,7 +32,10 @@ function setupRadioButtons(years, data) {
         .style('font-family', 'American Typewriter, serif')
         .style('font-size', '40px')
         .style('fill', '#FBB03B')
-        .style('margin-top', '80px');
+        .style('padding-left', '10%')
+        .style('padding-right', '10%')
+        .style('padding-top', '4%')
+        .style('margin-top', '100px');
     
     headerContainer.append('h5')
         .text('Names with the same first letter for each year, listing all the names used and its popularity')
@@ -42,9 +43,11 @@ function setupRadioButtons(years, data) {
 
     // Add the radio buttons container
     const radioContainer = headerContainer.append('div')
-        .attr('id', 'radio-buttons-container')
-        .style('display', 'inline-block');
-
+    .attr('id', 'radio-buttons-container')
+    .style('display', 'flex') 
+    .style('justify-content', 'center') 
+    .style('gap', '20px');
+  
     // Create a radio button for each year
     radioContainer.selectAll('label')
         .data(years)
@@ -54,16 +57,40 @@ function setupRadioButtons(years, data) {
         .style('color', 'white')
         .style('margin-right', '10px')
         .style('font-size', '14px')
+        .style('display', 'flex')
+        .style('align-items', 'flex-end')
         .html(d => `
-                <input type="radio" name="year" value="${d}">
+                <input type="radio" name="name" value="${d}" 
+                style="width: 20px; height: 20px; margin-right: 10px; 
+                appearance: none; border: 2px solid white; 
+                border-radius: 5px; /* Rounded corners */
+                background-color: transparent; cursor: pointer;">
                 ${d}
             `);
+    
 
     // Add change event to the radio buttons
     radioContainer.selectAll('input')
         .on('change', function () {
             const selectedYear = +this.value;
+            
+            // Update visualization
             updateVisualization(selectedYear, data);
+
+            // Reset all radio buttons to their default style
+            radioContainer.selectAll('input')
+                .style('background-color', 'transparent')
+                .style('border-color', 'white');
+
+            // Reset text color for all labels
+            radioContainer.selectAll('label')
+                .style('color', 'white');
+
+            d3.select(this)
+                .style('background-color', '#FBB03B');
+          
+            d3.select(this.parentNode)
+                .style('color', '#FBB03B');  
         });
 
     // Select the first year and update the visualization
@@ -71,11 +98,9 @@ function setupRadioButtons(years, data) {
     updateVisualization(years[0], data);
 }
 
-
 function updateVisualization(selectedYear, data) {
     const yearData = data.filter(d => d.year === selectedYear);
     const globalMaxCount = d3.max(yearData, d => d.count);
-
     const letterGroups = d3.group(yearData, d => d.name[0]);
     const sortedLetters = Array.from(letterGroups.keys()).sort();
 
@@ -90,7 +115,7 @@ function updateVisualization(selectedYear, data) {
     const smallHeight = 200;
     const radius = 50;
 
-    let selectedChart = null; // Track the selected chart
+    let selectedChart = null;
 
     // Handle clicks outside the charts
     d3.select('body').on('click', function (event) {
@@ -106,15 +131,13 @@ function updateVisualization(selectedYear, data) {
                 .transition()
                 .duration(300)
                 .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2}) scale(1)`);
-
-            selectedChart = null; // Reset selection
+            selectedChart = null;
         }
     });
 
     sortedLetters.forEach((letter, index) => {
         const letterData = letterGroups.get(letter);
-        const sortedLetterData = letterData.sort((a, b) => d3.ascending(a.count, b.count));
-        const genderData = d3.group(sortedLetterData, d => d.gender);
+        const genderData = d3.group(letterData, d => d.gender);
 
         const femaleData = genderData.get('FEMALE') || [];
         const maleData = genderData.get('MALE') || [];
@@ -125,11 +148,9 @@ function updateVisualization(selectedYear, data) {
             .style('margin', '5px')
             .style('transition', 'all 0.3s ease')
             .on('click', function (event) {
-                // Prevent click from propagating to the body
                 event.stopPropagation();
 
                 if (selectedChart && selectedChart !== this) {
-                    // Reset previously selected chart
                     d3.select(selectedChart)
                         .transition()
                         .duration(300)
@@ -141,7 +162,6 @@ function updateVisualization(selectedYear, data) {
                         .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2}) scale(1)`);
                 }
 
-                // Select the current chart
                 selectedChart = this;
                 d3.select(this)
                     .transition()
@@ -157,7 +177,7 @@ function updateVisualization(selectedYear, data) {
         const chartGroup = svg.append('g')
             .attr('transform', `translate(${smallWidth / 2}, ${smallHeight / 2})`);
 
-        svg.append('text')
+        const firstLetterText = svg.append('text')
             .attr('class', 'firstLetter')
             .attr('x', smallWidth / 2)
             .attr('y', smallHeight / 2 + 6)
@@ -197,12 +217,16 @@ function updateVisualization(selectedYear, data) {
             .attr('fill', d => colorScale(d.gender))
             .attr('stroke', 'none')
             .on('mouseover', function (e, d) {
-                // Highlight the hovered bar
+                // Don't hide the first letter if zoomed in
+                const isZoomed = selectedChart === svg.node();
+                if (!isZoomed) {
+                    firstLetterText.style('opacity', 0);  // Hide the letter 
+                }
+
                 d3.select(this)
                     .style("stroke", "#FBB03B")
                     .style("opacity", 1);
 
-                // Display hover bar
                 chartGroup.append('rect')
                     .attr('class', 'rect')
                     .attr('x', -40)
@@ -219,7 +243,7 @@ function updateVisualization(selectedYear, data) {
                     .attr('y', -10)
                     .attr('text-anchor', 'middle')
                     .text(d.name)
-                    .attr('fill', 'white')
+                    .attr('fill', '#FBB03B')
                     .style('font-family', 'Avenir Light');
 
                 chartGroup.append('text')
@@ -228,14 +252,16 @@ function updateVisualization(selectedYear, data) {
                     .attr('y', 10)
                     .attr('text-anchor', 'middle')
                     .text(`${d.count} babies`)
-                    .attr('fill', 'white')
+                    .attr('fill', '#FBB03B')
                     .style('font-family', 'Avenir Light');
             })
             .on('mouseout', function () {
-                // Remove hover bar
                 chartGroup.selectAll('.hover-text').remove();
                 chartGroup.selectAll('.rect').remove();
                 d3.select(this).style("stroke", "none");
+
+                // letter appears again 
+                firstLetterText.style('opacity', 1);
             });
     });
 }

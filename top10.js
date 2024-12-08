@@ -12,8 +12,8 @@ window.onload = function () {
     canvasHeight = 780;
     canvasWidth = 1080;
     padding = 60;
-    graphHeight = canvasHeight - padding * 2;
-    graphWidth = canvasWidth - padding * 2;
+    graphHeight = canvasHeight - padding * 2 -10;
+    graphWidth = canvasWidth - padding * 2 - 10;
 
     babies = 'datasets/top10babies.csv';
 
@@ -73,7 +73,7 @@ function top10(data) {
     //Create grid
     svg.append('g')
         .selectAll('line.horizontal')
-        .data(yScale.ticks(10))  // Divide o eixo Y em 10 partes
+        .data(yScale.ticks(10))  
         .enter().append('line')
         .attr('class', 'horizontal')
         .attr('x1', padding)
@@ -82,12 +82,12 @@ function top10(data) {
         .attr('y2', d => yScale(d))
         .style('stroke', 'white')
         .style('stroke-width', 1)
-        .style('opacity', 0.2);  // Transparência das linhas horizontais
+        .style('opacity', 0.2); 
 
     //Add subtitles x axis
     svg.append('text')
         .attr('x', canvasWidth / 2)
-        .attr('y', canvasHeight - 40)
+        .attr('y', canvasHeight - 80)
         .attr('text-anchor', 'middle')
         .attr('fill', 'white')
         .style('font-family', 'Avenir Light')
@@ -144,21 +144,36 @@ function top10(data) {
             .attr('d', line)
             .attr('class', nameData[0].gender)
             .on('mouseover', function () {
-                //highlight line
+                // Destacar a linha
                 d3.select(this).raise().attr('stroke', '#FBB03B').attr('stroke-width', 6);
-
-                //highlight name
+            
                 let maxPoint = nameData.reduce((max, d) => (d.count > max.count ? d : max), nameData[0]);
-                d3.select(`#label-${maxPoint.name}`).raise().attr('fill', '#FBB03B').style('font-size', '20px');
+                let label = d3.select(`#label-${maxPoint.name}`);
+            
+                
+                label.raise()
+                    .attr('fill', 'rgb(0, 0, 46)')  
+                    .style('font-size', '20px')  
+                    .style('stroke', '#FBB03B') 
+                    .style('stroke-width', '1.8') 
+                    .style('stroke-linejoin', 'round')  
+                    .style('text-shadow', '0 0 5px rgb(0, 0, 46), 0 0 10px rgb(0, 0, 46)');  
             })
             .on('mouseout', function () {
-                //restore line
+               
                 d3.select(this).lower().attr('stroke', colorScale(nameData[0].gender)).attr('stroke-width', 3);
-
-                //Restore name
+               
                 let maxPoint = nameData.reduce((max, d) => (d.count > max.count ? d : max), nameData[0]);
-                d3.select(`#label-${maxPoint.name}`).lower().attr('fill', colorScale(nameData[0].gender)).style('font-size', '16px');
+                let label = d3.select(`#label-${maxPoint.name}`);
+               
+                label.lower()
+                    .attr('fill', colorScale(nameData[0].gender))  
+                    .style('font-size', '16px')  
+                    .style('stroke', 'none') 
+                    .style('stroke-width', '0')  
+                    .style('text-shadow', 'none');  
             });
+            
 
         allLines.push({ name, lineElement, gender: nameData[0].gender, nameData });
 
@@ -187,55 +202,59 @@ function top10(data) {
         .style('align-items', 'center')
         .style('margin-bottom', '-20px');
 
+  // Girls checkbox
+controls.append('label')
+.style('color', 'white')
+.style('display', 'flex')
+.style('align-items', 'center')  
+.style('font-family', 'American Typewriter')
+.style('cursor', 'pointer')
+.style('margin-right', '15px')
+.html(`
+    <input type="checkbox" checked style="
+        width: 30px;  
+        height: 30px; 
+        background-color: pink; 
+        border: 2px solid white; 
+        border-radius: 8%;
+        margin-right: 10px; 
+        appearance: none; 
+        display: block; 
+        cursor: pointer; 
+    ">
+    Girls`)
 
-    //Girls checkbox
-    controls.append('label')
-        .style('color', 'white')
-        .style('display', 'flex')
-        .style('align-items', 'center')
-        .style('font-family', 'American Typewriter')
-        .style('cursor', 'pointer')
-        .style('margin-right', '15px')
-        .html(`
-            <input type="checkbox" checked style="
-                width: 30px; 
-                height: 30px; 
-                background-color: pink; 
-                border: 2px solid pink; 
-                border-radius: 5%; 
-                appearance: none; 
-                outline: none; 
-                margin-right: 10px;">
-            Girls
-        `)
-        .on('change', function () {
-            const checkbox = d3.select(this).select('input').node();
-            toggleLines('Female', checkbox.checked);
-        });
+.on('change', function () {
+    const checkbox = d3.select(this).select('input').node();
+    toggleLines('Female', checkbox.checked);
+});
 
-    //Boys checkbox
-    controls.append('label')
-        .style('color', 'white')
-        .style('display', 'flex')
-        .style('align-items', 'center')
-        .style('font-family', 'American Typewriter')
-        .style('cursor', 'pointer')
-        .html(`
-            <input type="checkbox" checked style="
-                width: 30px; 
-                height: 30px; 
-                background-color: #00AEE4; 
-                border: 2px solid #00AEE4; 
-                border-radius: 5%; 
-                appearance: none; 
-                outline: none; 
-                margin-right: 10px;">
-            Boys
-        `)
-        .on('change', function () {
-            const checkbox = d3.select(this).select('input').node();
-            toggleLines('Male', checkbox.checked);
-        });
+// Boys checkbox
+controls.append('label')
+.style('color', 'white')
+.style('display', 'flex')
+.style('align-items', 'center') 
+.style('font-family', 'American Typewriter')
+.style('cursor', 'pointer')
+.html(`
+    <input type="checkbox" checked style="
+        width: 30px;  
+        height: 30px; 
+        background-color: #00AEE4; 
+        border: 2px solid white;
+        border-radius: 8%;
+        margin-right: 10px; 
+        appearance: none; 
+        display: block; 
+        cursor: pointer; 
+    ">
+    Boys
+`)
+.on('change', function () {
+    const checkbox = d3.select(this).select('input').node();
+    toggleLines('Male', checkbox.checked);
+});
+
 
     //Show or hide the lines
     function toggleLines(gender, isChecked) {

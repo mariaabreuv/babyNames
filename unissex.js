@@ -1,99 +1,127 @@
 window.addEventListener("load", function () {
-    // Create a container for the layout
-    const layoutContainer = d3.select('body')
-        .append('div')
-        .attr('id', 'layout-container')
-        .style('display', 'flex')
-        .style('flex-direction', 'column') // Column layout for title and sections
-        .style('align-items', 'center') // Center-align everything
-        .style('justify-content', 'center')
-        .style('height', '100vh')
-        .style('width', '100%')
-        .style('box-sizing', 'border-box');
+     // Create a container for the layout
+     const layoutContainer = d3.select('body')
+     .append('div')
+     .attr('id', 'layout-container')
+     .style('display', 'flex')
+     .style('flex-direction', 'column') // Column layout for title and sections
+     .style('align-items', 'center') // Center-align everything
+     .style('justify-content', 'center')
+     .style('height', '100vh')
+     .style('width', '100%')
+     .style('box-sizing', 'border-box');
 
-    // Add title before both sections
-    layoutContainer.append('h2')
-        .text('Unisex Names through the Years') // Add your desired title text here
-        .style('margin-bottom', '20px') // Add spacing below the title
-        .style('text-align', 'center') // Center-align the title
-        .style('font-size', '24px') // Style the title font size
-        .attr('text-anchor', 'middle') // Centraliza o texto no eixo X
-        .style('font-family', 'American Typewriter, serif')
-        .style('font-weight', 100)
-        .style('font-size', '40px')
-        .style('fill', '#FBB03B')
-        .style('letter-spacing', '5px')
-        .style('margin-top', '80px')
+ // Add title before both sections
+ layoutContainer.append('h2')
+     .text('Unisex Names through the Years') 
+     .style('margin-bottom', '20px')
+     .style('text-align', 'center') 
+     .style('font-size', '24px') 
+     .attr('text-anchor', 'middle') 
+     .style('font-family', 'American Typewriter, serif')
+     .style('font-weight', 100)
+     .style('font-size', '40px')
+     .style('fill', '#FBB03B')
+     .style('letter-spacing', '5px')
+     .style('margin-top', '80px')
 
-    layoutContainer.append('h5')
-        .text('Percentage of unisex name distribution through time')
+ layoutContainer.append('h5')
+     .text('Percentage of unisex name distribution through time')
+
+  const contentContainer = layoutContainer.append('div')
+  .style('display', 'flex')
+  .style('justify-content', 'center')
+  .style('align-items', 'center')
+  .style('width', '100%');
+
+     const radioSection = contentContainer.append('div')
+     .attr('id', 'radio-section')
+     .style('width', '200px')
+     .style('height', '500px')
+     .style('overflow-y', 'scroll') 
+     .style('padding', '10px')
+     .style('border', 'none') 
+     .style('background-color', 'transparent') 
+     .style('border-right', 'none');
 
 
-    // Create a container for the radio-section and graph-section
-    const contentContainer = layoutContainer.append('div')
-        .style('display', 'flex') // Flexbox layout for side-by-side sections
-        .style('align-items', 'center')
-        .style('justify-content', 'center')
-        .style('width', '100%');
+ const radioSectionElement = document.getElementById('radio-section');
+ radioSectionElement.style['scrollbar-color'] = 'white transparent'; 
+ radioSectionElement.style['scrollbar-width'] = 'thin'; 
+ radioSectionElement.style['overflow-y'] = 'scroll'; 
 
-    // Create a scrollable section for radio buttons
-    const radioSection = contentContainer.append('div')
-        .attr('id', 'radio-section')
-        .style('width', '200px')
-        .style('height', '500px') // Fixed height for scrollable area
-        .style('overflow-y', 'auto')
-        .style('border', '1px solid #ccc')
-        .style('padding', '10px')
-        .style('background-color', '#f9f9f9')
-        .style('box-shadow', '0 4px 8px rgba(0, 0, 0, 0.1)');
+// Create the SVG container for the graph
+const graphSection = contentContainer.append('div')
+    .attr('id', 'graph-section')
+    .style('flex-grow', '1')
+    .style('max-width', '800px')
+    .style('padding-left', '20px');
 
-    // Create the SVG container for the graph
-    const graphSection = contentContainer.append('div')
-        .attr('id', 'graph-section')
-        .style('flex-grow', '1')
-        .style('max-width', '800px')
-        .style('padding-left', '20px');
+const width = 800;
+const height = 500;
+const margin = { top: 40, right: 30, bottom: 50, left: 70 };
 
-    const width = 800;
-    const height = 500;
-    const margin = { top: 40, right: 30, bottom: 50, left: 70 };
+const svg = graphSection.append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const svg = graphSection.append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+// Load and parse the CSV file
+d3.csv("datasets/UnissexBaby.csv").then(function (data) {
+    const uniqueNames = Array.from(new Set(data.map(d => d["ChildsFirstName"]))).sort();
 
-    // Load and parse the CSV file
-    d3.csv("datasets/UnissexBaby.csv").then(function (data) {
-        const uniqueNames = Array.from(new Set(data.map(d => d["ChildsFirstName"]))).sort();
+    const allYears = data.map(d => +d["YearOfBirth"]);
+    const overallMinYear = d3.min(allYears);
+    const overallMaxYear = d3.max(allYears);
 
-        const allYears = data.map(d => +d["YearOfBirth"]);
-        const overallMinYear = d3.min(allYears);
-        const overallMaxYear = d3.max(allYears);
+    // Create radio buttons for each unique name
+    radioSection.selectAll('label')
+        .data(uniqueNames)
+        .enter()
+        .append('label')
+        .attr('class', 'radio-button-label')
+        .style('display', 'block')
+        .style('margin-bottom', '10px')
+        .style('font-size', '14px')
+        .style('font-family', 'Avenir Light')
+        .style('cursor', 'pointer')
+        .style('color', 'white') 
+        .html(d => `
+            <input type="radio" name="name" value="${d}" 
+                style="width: 20px; height: 20px; margin-right: 10px; 
+                appearance: none; border: 2px solid white; 
+                border-radius: 5px; /* Rounded corners */
+                background-color: transparent; cursor: pointer;">
+            ${d}
+        `);
 
-        // Create radio buttons for each unique name
-        radioSection.selectAll('label')
-            .data(uniqueNames)
-            .enter()
-            .append('label')
-            .attr('class', 'radio-button-label')
-            .style('display', 'block')
-            .style('margin-bottom', '10px')
-            .style('font-size', '14px')
-            .style("fill", "white")
-            .style("font-family", "Avenir Light")
-            .html(d => `
-                <input type="radio" name="name" value="${d}">
-                ${d}
-            `);
+   
+    function updateSelectedStyles() {
+        // Reset all labels and buttons
+        radioSection.selectAll('label').style('color', 'white');
+        radioSection.selectAll('input[type="radio"]')
+            .style('background-color', 'transparent') 
+            .style('border-color', 'white'); 
 
-        // Automatically select the first name
-        d3.select(`input[name="name"][value="${uniqueNames[0]}"]`).property('checked', true);
+        // Update the selected one
+        const selectedRadio = radioSection.select('input[name="name"]:checked');
+        selectedRadio.style('background-color', '#FBB03B') 
+            .style('border-color', 'white'); 
 
-        // Add event listeners to the radio buttons
-        radioSection.selectAll('input')
-            .on('change', updateChart);
+        selectedRadio.node().parentNode.style.color = '#FBB03B'; 
+    }
+
+    // Apply event listener to update styles on change
+    radioSection.selectAll('input[type="radio"]').on('change', function () {
+        updateSelectedStyles(); 
+        updateChart(); 
+    });
+
+    // Automatically select the first name
+    const firstRadio = d3.select(`input[name="name"][value="${uniqueNames[0]}"]`);
+    firstRadio.property('checked', true); 
+    updateSelectedStyles(); 
 
         // Initial chart rendering
         updateChart();
@@ -124,7 +152,7 @@ window.addEventListener("load", function () {
 
             const color = d3.scaleOrdinal()
                 .domain(["boys", "girls"])
-                .range(['steelblue', 'pink']);
+                .range(['#00AEE4', 'pink']);
 
             const stack = d3.stack().keys(["boys", "girls"]);
             const series = stack(completeData);
@@ -169,7 +197,7 @@ window.addEventListener("load", function () {
             }
             xAxis.transition()
                 .duration(500)
-                .call(d3.axisBottom(x).ticks(11).tickFormat(d3.timeFormat("%Y")));
+                .call(d3.axisBottom(x).ticks(11).tickSize(0).tickPadding(10).tickFormat(d3.timeFormat("%Y")));
 
             // Update y-axis
             let yAxis = svg.select(".y-axis");
@@ -180,14 +208,14 @@ window.addEventListener("load", function () {
             }
             yAxis.transition()
                 .duration(500)
-                .call(d3.axisLeft(y).ticks(10).tickFormat(d => `${d}%`));
+                .call(d3.axisLeft(y).ticks(10).tickSize(0).tickPadding(10).tickFormat(d => `${d}%`));
 
             // Add axis labels only if they don't already exist
             if (svg.select(".x-axis-label").empty()) {
                 svg.append("text")
                     .attr("class", "x-axis-label")
                     .attr("x", width / 2)
-                    .attr("y", height + margin.bottom - 10)
+                    .attr("y", height + margin.bottom )
                     .attr("text-anchor", "middle")
                     .attr('fill', 'white')
                     .style('font-family', 'Avenir Light')
