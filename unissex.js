@@ -1,3 +1,5 @@
+document.body.style.fontFamily = "Avenir, 'Helvetica Neue', Helvetica, Arial, sans-serif";
+
 window.addEventListener("load", function () {
      // Create a container for the layout
      const layoutContainer = d3.select('body')

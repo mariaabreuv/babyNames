@@ -8,6 +8,7 @@ window.onload = function () {
     link.rel = 'stylesheet';
     link.href = 'https://fonts.googleapis.com/css2?family=Avenir+Light&family=American+Typewriter&display=swap';
     head.appendChild(link);
+    document.body.style.fontFamily = "Avenir, 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
     canvasHeight = 780;
     canvasWidth = 1080;

@@ -1,3 +1,5 @@
+document.body.style.fontFamily = "Avenir, 'Helvetica Neue', Helvetica, Arial, sans-serif";
+
 window.addEventListener("load", function () {
     const filePath = 'datasets/NameCounts.csv'; // Path to your data file
 
